@@ -3,47 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Human-reviewed local news and community updates for Pasadena, Maryland." />
+  <meta name="description" content="The Pasadena Current — human-reviewed local news and community updates for Pasadena, Maryland." />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
-  <title>Pasadena Community Brief</title>
+  <title>The Pasadena Current</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="wrap header-inner">
       <div>
-        <p class="eyebrow">Pasadena, Maryland</p>
-        <h1>Pasadena Community Brief</h1>
-        <p class="tagline">What changed around Pasadena that you would actually care about?</p>
+        <p class="eyebrow">Pasadena, Maryland · 21122</p>
+        <h1><span class="brand-the">The</span> Pasadena Current</h1>
+        <p class="tagline">News from the roads, neighborhoods, docks and water around Pasadena.</p>
       </div>
       <div class="edition-meta">
         <span id="editionDate"></span>
-        <span class="reviewed-badge">Human reviewed</span>
+        <span class="reviewed-badge">Locally reviewed</span>
       </div>
     </div>
   </header>
 
   <main class="wrap">
     <section class="intro-strip">
-      <p>Local-first updates for Pasadena and nearby Anne Arundel County. Every item shown here was reviewed before publication and links back to its original source.</p>
+      <p>A local-first briefing for Pasadena and the nearby Anne Arundel communities that affect life here—from Mountain Road to the Magothy and out toward the Bay.</p>
       <span id="storyCount" class="story-count">Loading…</span>
     </section>
 
-    <section id="loadingState" class="state-card">Loading the latest approved stories…</section>
+    <section id="loadingState" class="state-card">Checking today’s current…</section>
     <section id="errorState" class="state-card error hidden"></section>
-    <section id="emptyState" class="state-card hidden">No approved stories are published yet. Check back soon.</section>
+    <section id="emptyState" class="state-card hidden">Nothing has cleared the editor’s desk yet. Check back soon.</section>
 
     <section id="content" class="hidden">
       <section class="featured-section">
-        <p class="section-label">Top story</p>
+        <p class="section-label">Making waves</p>
         <article id="featuredStory" class="featured-card"></article>
       </section>
 
       <section class="latest-section">
         <div class="section-heading">
           <div>
-            <p class="section-label">Pasadena Today</p>
-            <h2>Latest approved stories</h2>
+            <p class="section-label">Around Pasadena</p>
+            <h2>The latest current</h2>
           </div>
           <div id="categoryFilters" class="category-filters" aria-label="Story categories"></div>
         </div>
@@ -54,8 +54,8 @@
 
   <footer class="site-footer">
     <div class="wrap footer-inner">
-      <p><strong>Pasadena Community Brief</strong> · Independent local community briefing.</p>
-      <p>Summaries are concise editorial digests. Follow the source link for the complete original report.</p>
+      <p><strong>The Pasadena Current</strong> · Local news, community life and what matters around 21122.</p>
+      <p>We summarize and link. Original reporting stays with the original source. <a class="editor-link" href="./editorial/">Editor login</a></p>
     </div>
   </footer>
 
@@ -68,7 +68,7 @@
       <h3></h3>
       <p class="summary"></p>
       <div class="story-meta"></div>
-      <a class="read-source" target="_blank" rel="noopener noreferrer">Read original source →</a>
+      <a class="read-source" target="_blank" rel="noopener noreferrer">Read the source →</a>
     </article>
   </template>
 
