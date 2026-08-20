@@ -4,18 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
-  <title>Pasadena Community Brief — Editorial Desk</title>
+  <title>The Pasadena Current — Editorial Desk</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="shell">
     <header class="masthead">
       <div>
-        <p class="eyebrow">Pasadena Community Brief</p>
+        <p class="eyebrow">The Pasadena Current · 21122</p>
         <h1>Editorial Desk</h1>
-        <p class="subhead">Review, refine, approve, and reject AI-triaged community stories.</p>
+        <p class="subhead">Review the feed, shape the story, and decide what reaches Pasadena.</p>
       </div>
       <div class="masthead-actions">
+        <a class="button ghost public-site-link" href="../">View public site</a>
         <span id="sessionEmail" class="session-email hidden"></span>
         <button id="signOutButton" class="button ghost hidden" type="button">Sign out</button>
       </div>
@@ -28,14 +29,8 @@
         <p>There is no public signup. Your Supabase Auth account must also be explicitly added to the private editor-membership list.</p>
       </div>
       <form id="loginForm" class="login-form">
-        <label>
-          Email
-          <input id="emailInput" name="email" type="email" autocomplete="username" required />
-        </label>
-        <label>
-          Password
-          <input id="passwordInput" name="password" type="password" autocomplete="current-password" required />
-        </label>
+        <label>Email<input id="emailInput" name="email" type="email" autocomplete="username" required /></label>
+        <label>Password<input id="passwordInput" name="password" type="password" autocomplete="current-password" required /></label>
         <button class="button primary" type="submit">Sign in</button>
         <p id="loginMessage" class="form-message" aria-live="polite"></p>
       </form>
@@ -51,29 +46,30 @@
 
       <section class="toolbar panel">
         <div class="filter-group">
-          <label>
-            Status
-            <select id="statusFilter">
-              <option value="active">Review + New</option>
-              <option value="review">Review only</option>
-              <option value="new">New only</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="all">All</option>
-            </select>
-          </label>
-          <label>
-            Category
-            <select id="categoryFilter"><option value="all">All categories</option></select>
-          </label>
-          <label class="search-label">
-            Search
-            <input id="searchInput" type="search" placeholder="Headline, summary, location…" />
-          </label>
+          <label>Status<select id="statusFilter"><option value="active">Review + New</option><option value="review">Review only</option><option value="new">New only</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select></label>
+          <label>Category<select id="categoryFilter"><option value="all">All categories</option></select></label>
+          <label class="search-label">Search<input id="searchInput" type="search" placeholder="Headline, summary, location…" /></label>
         </div>
         <div class="toolbar-actions">
+          <button id="generateEditionButton" class="button primary" type="button">Generate edition</button>
           <button id="refreshButton" class="button ghost" type="button">Refresh</button>
         </div>
+      </section>
+
+      <section id="editionPanel" class="panel edition-panel hidden">
+        <div class="edition-panel-heading">
+          <div>
+            <p class="eyebrow">Ready to publish</p>
+            <h2>Edition drafts</h2>
+            <p class="subhead">Built only from stories you have approved. Edit freely before publishing anywhere.</p>
+          </div>
+          <button id="closeEditionButton" class="button ghost" type="button">Close</button>
+        </div>
+        <div class="edition-grid">
+          <label>Newsletter draft<textarea id="newsletterDraft" rows="18"></textarea><button id="copyNewsletterButton" class="button ghost" type="button">Copy newsletter</button></label>
+          <label>Facebook draft<textarea id="facebookDraft" rows="18"></textarea><button id="copyFacebookButton" class="button ghost" type="button">Copy Facebook post</button></label>
+        </div>
+        <p id="editionMessage" class="form-message" aria-live="polite"></p>
       </section>
 
       <section id="queueNotice" class="notice hidden" aria-live="polite"></section>
@@ -83,54 +79,18 @@
 
   <template id="storyCardTemplate">
     <article class="story-card">
-      <div class="story-topline">
-        <div class="badge-row">
-          <span class="badge category-badge"></span>
-          <span class="badge status-badge"></span>
-        </div>
-        <a class="source-link" target="_blank" rel="noopener noreferrer">Open source ↗</a>
-      </div>
-
+      <div class="story-topline"><div class="badge-row"><span class="badge category-badge"></span><span class="badge status-badge"></span></div><a class="source-link" target="_blank" rel="noopener noreferrer">Open source ↗</a></div>
       <div class="story-heading">
-        <div>
-          <p class="source-title"></p>
-          <h2 class="display-headline"></h2>
-          <p class="story-meta"></p>
-        </div>
-        <div class="score-stack">
-          <div class="score relevance-score"><span>Local</span><strong></strong></div>
-          <div class="score urgency-score"><span>Urgency</span><strong></strong></div>
-        </div>
+        <div><p class="source-title"></p><h2 class="display-headline"></h2><p class="story-meta"></p></div>
+        <div class="score-stack"><div class="score relevance-score"><span>Local</span><strong></strong></div><div class="score urgency-score"><span>Urgency</span><strong></strong></div></div>
       </div>
-
-      <div class="reason-box">
-        <span>Why AI scored it this way</span>
-        <p class="relevance-reason"></p>
-      </div>
-
+      <div class="reason-box"><span>Why AI scored it this way</span><p class="relevance-reason"></p></div>
       <div class="editor-fields">
-        <label>
-          Headline
-          <input class="headline-input" type="text" maxlength="180" />
-        </label>
-        <label>
-          Summary
-          <textarea class="summary-input" rows="5"></textarea>
-        </label>
-        <label>
-          Editor notes
-          <textarea class="notes-input" rows="3" placeholder="Optional internal notes"></textarea>
-        </label>
+        <label>Headline<input class="headline-input" type="text" maxlength="180" /></label>
+        <label>Summary<textarea class="summary-input" rows="5"></textarea></label>
+        <label>Editor notes<textarea class="notes-input" rows="3" placeholder="Optional internal notes"></textarea></label>
       </div>
-
-      <footer class="story-actions">
-        <span class="save-state"></span>
-        <div>
-          <button class="button ghost save-button" type="button">Save edit</button>
-          <button class="button danger reject-button" type="button">Reject</button>
-          <button class="button primary approve-button" type="button">Approve</button>
-        </div>
-      </footer>
+      <footer class="story-actions"><span class="save-state"></span><div><button class="button ghost save-button" type="button">Save edit</button><button class="button danger reject-button" type="button">Reject</button><button class="button primary approve-button" type="button">Approve</button></div></footer>
     </article>
   </template>
 
