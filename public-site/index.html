@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Human-reviewed local news and community updates for Pasadena, Maryland." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Pasadena Community Brief</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div>
+        <p class="eyebrow">Pasadena, Maryland</p>
+        <h1>Pasadena Community Brief</h1>
+        <p class="tagline">What changed around Pasadena that you would actually care about?</p>
+      </div>
+      <div class="edition-meta">
+        <span id="editionDate"></span>
+        <span class="reviewed-badge">Human reviewed</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="intro-strip">
+      <p>Local-first updates for Pasadena and nearby Anne Arundel County. Every item shown here was reviewed before publication and links back to its original source.</p>
+      <span id="storyCount" class="story-count">Loading…</span>
+    </section>
+
+    <section id="loadingState" class="state-card">Loading the latest approved stories…</section>
+    <section id="errorState" class="state-card error hidden"></section>
+    <section id="emptyState" class="state-card hidden">No approved stories are published yet. Check back soon.</section>
+
+    <section id="content" class="hidden">
+      <section class="featured-section">
+        <p class="section-label">Top story</p>
+        <article id="featuredStory" class="featured-card"></article>
+      </section>
+
+      <section class="latest-section">
+        <div class="section-heading">
+          <div>
+            <p class="section-label">Pasadena Today</p>
+            <h2>Latest approved stories</h2>
+          </div>
+          <div id="categoryFilters" class="category-filters" aria-label="Story categories"></div>
+        </div>
+        <div id="storyGrid" class="story-grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p><strong>Pasadena Community Brief</strong> · Independent local community briefing.</p>
+      <p>Summaries are concise editorial digests. Follow the source link for the complete original report.</p>
+    </div>
+  </footer>
+
+  <template id="storyTemplate">
+    <article class="story-card">
+      <div class="card-topline">
+        <span class="category"></span>
+        <span class="local-score"></span>
+      </div>
+      <h3></h3>
+      <p class="summary"></p>
+      <div class="story-meta"></div>
+      <a class="read-source" target="_blank" rel="noopener noreferrer">Read original source →</a>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
