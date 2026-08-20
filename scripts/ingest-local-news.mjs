@@ -7,35 +7,60 @@ const SUPABASE_URL = requiredEnv('SUPABASE_URL').replace(/\/$/, '');
 const SUPABASE_SECRET_KEY = requiredEnv('SUPABASE_SECRET_KEY');
 const triagePrompt = await readFile(new URL('../prompts/story-triage.md', import.meta.url), 'utf8');
 
+const LOCAL_TERMS = /(pasadena|21122|magothy|mountain\s+road|lake\s+shore|riviera\s+beach|bodkin|fort\s+smallwood|chesapeake\s+(?:high|bay)|northeast\s+high|jacobsville|hog\s+neck|duvall\s+highway)/i;
+
 const SOURCE_CONFIGS = [
   {
     name: 'Anne Arundel County Health Department',
-    listUrls: ['https://www.aahealth.org/news'],
-    maxCandidates: 18,
-    minRelevance: 40,
-    context: 'Official Anne Arundel County health alerts. Pasadena rabies alerts, Magothy-area water advisories, local environmental health alerts, and countywide health emergencies can be highly relevant.',
+    listUrls: [
+      'https://www.aahealth.org/environmental-health/rabies-prevention/rabies-alerts',
+      'https://www.aahealth.org/environmental-health/recreational-water-quality/closings-and-advisories',
+      'https://www.aahealth.org/news',
+    ],
+    maxCandidates: 28,
+    minRelevance: 70,
+    urgencyOverride: 85,
+    maxAgeDays: 60,
+    context: 'Official Anne Arundel County health alerts. Prioritize Pasadena rabies alerts, Magothy/Pasadena recreational-water advisories, local environmental-health alerts, and true countywide emergencies. Generic product recalls, administrative pages, service directories, grant pages, and county navigation pages are not Pasadena local news and should score below the storage threshold unless the source explicitly establishes a direct Pasadena impact.',
     accept(url, anchorText) {
       const parsed = new URL(url);
       if (parsed.hostname !== 'www.aahealth.org') return false;
       const path = parsed.pathname.replace(/\/$/, '');
-      if (['', '/news', '/services', '/events', '/locations', '/about-us', '/contact-us', '/jobs'].includes(path)) return false;
-      if (/\/(privacy|ada|employment|statistics|personnel|grant-opportunities)$/i.test(path)) return false;
-      return anchorText.length >= 12 && path.split('/').filter(Boolean).length >= 2;
+      const indexes = new Set([
+        '/news',
+        '/environmental-health/rabies-prevention/rabies-alerts',
+        '/environmental-health/recreational-water-quality/closings-and-advisories',
+      ]);
+      if (indexes.has(path)) return false;
+      if (/^\/(about-us|services|locations|contact-us|jobs)(?:\/|$)/i.test(path)) return false;
+      if (/\/(privacy|ada|employment|statistics-and-reports|personnel-roster|grant-opportunities)$/i.test(path)) return false;
+      return anchorText.trim().length >= 18 && path.split('/').filter(Boolean).length >= 2;
+    },
+    priority(url, text) {
+      let score = LOCAL_TERMS.test(`${url} ${text}`) ? 120 : 0;
+      if (/(rabies|advisory|swimming|water|bacteria|west nile|measles|heat|outbreak)/i.test(text)) score += 40;
+      if (/recall/i.test(text)) score -= 30;
+      return score;
     },
   },
   {
     name: 'Eye On Annapolis',
-    listUrls: ['https://www.eyeonannapolis.net/'],
-    maxCandidates: 24,
-    minRelevance: 45,
-    context: 'Independent Anne Arundel County local media. Keep only stories with meaningful Pasadena-area value; Annapolis-only, sports-only, advertorial, gambling, generic lifestyle, and weakly local material should score low.',
+    listUrls: [
+      'https://www.eyeonannapolis.net/?s=Pasadena',
+      'https://www.eyeonannapolis.net/',
+    ],
+    maxCandidates: 30,
+    minRelevance: 55,
+    urgencyOverride: 85,
+    maxAgeDays: 45,
+    context: 'Independent Anne Arundel County local media. Keep stories with meaningful Pasadena-area value: Pasadena neighborhoods, Mountain Road, local businesses, schools, Fort Smallwood, the Magothy/Bodkin, waterfront events, development, health, infrastructure, or issues directly affecting residents. Annapolis-only, sports-only, advertorial, gambling, generic lifestyle, and weakly local material should score low.',
     accept(url) {
       const parsed = new URL(url);
       if (!/(^|\.)eyeonannapolis\.net$/i.test(parsed.hostname)) return false;
-      const match = parsed.pathname.match(/^\/(\d{4})\/(\d{2})\/[^/]+\/?$/);
-      if (!match) return false;
-      const published = Date.parse(`${match[1]}-${match[2]}-01T00:00:00Z`);
-      return Number.isFinite(published) && published >= Date.now() - 70 * 24 * 60 * 60 * 1000;
+      return /^\/20\d{2}\/\d{2}\/[^/]+\/?$/i.test(parsed.pathname);
+    },
+    priority(url, text) {
+      return LOCAL_TERMS.test(`${url} ${text}`) ? 150 : 0;
     },
   },
   {
@@ -44,13 +69,19 @@ const SOURCE_CONFIGS = [
       'https://www.aacps.org/o/chesapeakehs/live-feed',
       'https://www.aacps.org/o/northeasths/live-feed',
     ],
-    maxCandidates: 16,
-    minRelevance: 55,
-    context: 'Official AACPS material surfaced through the Chesapeake High and Northeast High feeds serving Pasadena. Give higher relevance to items directly involving Pasadena schools, their clusters, schedules, facilities, students, boundary changes, transportation, or district decisions with direct family impact.',
+    maxCandidates: 20,
+    minRelevance: 70,
+    urgencyOverride: 90,
+    maxAgeDays: 90,
+    preferAnchorTitle: true,
+    context: 'Official AACPS material discovered through the Chesapeake High and Northeast High feeds serving Pasadena. Prioritize news directly involving Pasadena schools and their clusters, calendars, boundaries, transportation, facilities, events, schedules, student opportunities, and district decisions with direct family impact. Routine county labor/administrative news without a distinct effect on Pasadena families should score below 70.',
     accept(url) {
       const parsed = new URL(url);
       if (parsed.hostname !== 'www.aacps.org') return false;
       return /(?:^|\/)article\/\d+\/?$/i.test(parsed.pathname);
+    },
+    priority(url, text) {
+      return LOCAL_TERMS.test(`${url} ${text}`) ? 120 : 0;
     },
   },
 ];
@@ -74,14 +105,13 @@ function htmlDecode(value) {
 }
 
 function stripHtml(html) {
-  const body = String(html ?? '')
+  return htmlDecode(String(html ?? '')
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
     .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, ' ')
     .replace(/<(br|\/p|\/div|\/li|\/h[1-6]|\/section|\/article)\b[^>]*>/gi, '\n')
-    .replace(/<[^>]+>/g, ' ');
-  return htmlDecode(body)
+    .replace(/<[^>]+>/g, ' '))
     .replace(/[ \t]+/g, ' ')
     .replace(/\n\s*\n+/g, '\n')
     .trim();
@@ -97,22 +127,28 @@ function extractTitle(html) {
   const raw = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]
     ?? html.match(/<meta\b[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i)?.[1]
     ?? html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1]
-    ?? 'Untitled local item';
+    ?? '';
   return stripHtml(raw).replace(/\s+/g, ' ').trim();
 }
 
-function extractAnchors(html, baseUrl) {
+function extractAnchors(html, baseUrl, config) {
   const best = new Map();
+  let order = 0;
   for (const match of String(html).matchAll(/<a\b[^>]*href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    order += 1;
     try {
       const url = new URL(htmlDecode(match[1]), baseUrl);
       if (!/^https?:$/.test(url.protocol)) continue;
       url.hash = '';
       const text = stripHtml(match[2]).replace(/\s+/g, ' ').trim();
+      if (!config.accept(url.toString(), text)) continue;
+      const priority = config.priority?.(url.toString(), text) ?? 0;
       const existing = best.get(url.toString());
-      if (!existing || text.length > existing.text.length) best.set(url.toString(), { url: url.toString(), text });
+      if (!existing || priority > existing.priority || text.length > existing.text.length) {
+        best.set(url.toString(), { url: url.toString(), text, priority, order, discoveredFrom: baseUrl });
+      }
     } catch {
-      // Ignore malformed links from source HTML.
+      // Ignore malformed source links.
     }
   }
   return [...best.values()];
@@ -158,7 +194,7 @@ async function fetchText(url) {
   const response = await fetch(url, {
     redirect: 'follow',
     headers: {
-      'User-Agent': 'PasadenaCurrent/0.2 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
+      'User-Agent': 'PasadenaCurrent/0.3 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
       Accept: 'text/html,application/xhtml+xml',
     },
   });
@@ -190,10 +226,7 @@ async function triageStory({ config, title, text, url, discoveredFrom }) {
       model: OPENAI_MODEL,
       input: [
         { role: 'system', content: `${triagePrompt}\n\nSOURCE-SPECIFIC CONTEXT:\n${config.context}` },
-        {
-          role: 'user',
-          content: `SOURCE: ${config.name}\nDISCOVERED FROM: ${discoveredFrom}\nURL: ${url}\nTITLE: ${title}\n\nSOURCE TEXT:\n${text.slice(0, 14000)}`,
-        },
+        { role: 'user', content: `SOURCE: ${config.name}\nDISCOVERED FROM: ${discoveredFrom}\nURL: ${url}\nTITLE: ${title}\n\nSOURCE TEXT:\n${text.slice(0, 14000)}` },
       ],
       text: { format: { type: 'json_schema', name: 'pasadena_story_triage', strict: true, schema: storySchema } },
       max_output_tokens: 800,
@@ -206,28 +239,32 @@ async function triageStory({ config, title, text, url, discoveredFrom }) {
   return JSON.parse(outputText);
 }
 
-function publishedAtFromUrl(url) {
-  const eoa = new URL(url).pathname.match(/^\/(\d{4})\/(\d{2})\/([^/]+)\/?$/);
-  return eoa ? `${eoa[1]}-${eoa[2]}-01T12:00:00Z` : null;
-}
-
-function publishedAtFromHtmlOrText(html, text, url) {
-  const fromUrl = publishedAtFromUrl(url);
-  const jsonLd = html.match(/["']datePublished["']\s*:\s*["']([^"']+)["']/i)?.[1];
-  const timeTag = html.match(/<time\b[^>]*datetime=["']([^"']+)["']/i)?.[1];
-  for (const raw of [jsonLd, timeTag]) {
+function publishedAtFromHtmlOrText(html, text) {
+  const rawCandidates = [
+    html.match(/["']datePublished["']\s*:\s*["']([^"']+)["']/i)?.[1],
+    html.match(/<time\b[^>]*datetime=["']([^"']+)["']/i)?.[1],
+  ];
+  for (const raw of rawCandidates) {
     if (!raw) continue;
     const parsed = new Date(raw);
     if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
   }
+
   const numeric = text.match(/\b(0?[1-9]|1[0-2])\/(0?[1-9]|[12]\d|3[01])\/(20\d{2})\b/);
   if (numeric) return `${numeric[3]}-${numeric[1].padStart(2, '0')}-${numeric[2].padStart(2, '0')}T12:00:00Z`;
+
   const named = text.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(20\d{2})\b/i);
   if (named) {
     const parsed = new Date(`${named[1]} ${named[2]}, ${named[3]} 12:00:00 UTC`);
     if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
   }
-  return fromUrl;
+  return null;
+}
+
+function isFresh(publishedAt, maxAgeDays) {
+  if (!publishedAt) return true;
+  const age = Date.now() - new Date(publishedAt).getTime();
+  return age <= maxAgeDays * 24 * 60 * 60 * 1000;
 }
 
 function externalId(url) {
@@ -238,13 +275,14 @@ async function candidatesFor(config) {
   const found = new Map();
   for (const listUrl of config.listUrls) {
     const html = await fetchText(listUrl);
-    for (const anchor of extractAnchors(html, listUrl)) {
-      if (!config.accept(anchor.url, anchor.text)) continue;
-      const existing = found.get(anchor.url);
-      if (!existing) found.set(anchor.url, { ...anchor, discoveredFrom: listUrl });
+    for (const candidate of extractAnchors(html, listUrl, config)) {
+      const existing = found.get(candidate.url);
+      if (!existing || candidate.priority > existing.priority) found.set(candidate.url, candidate);
     }
   }
-  return [...found.values()].slice(0, config.maxCandidates);
+  return [...found.values()]
+    .sort((a, b) => b.priority - a.priority || a.order - b.order)
+    .slice(0, config.maxCandidates);
 }
 
 async function ingestSource(config) {
@@ -252,31 +290,27 @@ async function ingestSource(config) {
   const candidates = await candidatesFor(config);
   console.log(`${config.name}: found ${candidates.length} candidate links.`);
 
-  let inserted = 0;
-  let skipped = 0;
-  let filtered = 0;
-  let failed = 0;
+  let inserted = 0, skipped = 0, filtered = 0, stale = 0, failed = 0;
 
   for (const candidate of candidates) {
     try {
-      if (await storyExists(candidate.url)) {
-        skipped += 1;
-        continue;
-      }
+      if (await storyExists(candidate.url)) { skipped += 1; continue; }
       const html = await fetchText(candidate.url);
-      const title = extractTitle(html) || candidate.text || 'Untitled local item';
       const text = articleText(html);
       if (text.length < 120) throw new Error('Extracted source text is unexpectedly short');
 
-      const triage = await triageStory({
-        config,
-        title,
-        text,
-        url: candidate.url,
-        discoveredFrom: candidate.discoveredFrom,
-      });
+      const extractedTitle = extractTitle(html);
+      const title = config.preferAnchorTitle && candidate.text.length >= 12
+        ? candidate.text
+        : (extractedTitle || candidate.text || 'Untitled local item');
+      const publishedAt = publishedAtFromHtmlOrText(html, text);
+      if (!isFresh(publishedAt, config.maxAgeDays)) {
+        stale += 1;
+        continue;
+      }
 
-      if (triage.pasadena_relevance < config.minRelevance && triage.urgency < 75) {
+      const triage = await triageStory({ config, title, text, url: candidate.url, discoveredFrom: candidate.discoveredFrom });
+      if (triage.pasadena_relevance < config.minRelevance && triage.urgency < config.urgencyOverride) {
         filtered += 1;
         console.log(`Filtered ${config.name}: ${title} [relevance=${triage.pasadena_relevance}, urgency=${triage.urgency}]`);
         continue;
@@ -295,7 +329,7 @@ async function ingestSource(config) {
         trust_score: source.trust_score,
         urgency: triage.urgency,
         location_text: triage.location_text || null,
-        published_at: publishedAtFromHtmlOrText(html, text, candidate.url),
+        published_at: publishedAt,
         editorial_status: triage.should_review ? 'review' : 'new',
         ai_model: OPENAI_MODEL,
         ai_processed_at: new Date().toISOString(),
@@ -309,7 +343,7 @@ async function ingestSource(config) {
     }
   }
 
-  return { source: config.name, candidates: candidates.length, inserted, skipped, filtered, failed };
+  return { source: config.name, candidates: candidates.length, inserted, skipped, filtered, stale, failed };
 }
 
 const results = [];
