@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 const SOURCE_NAME = 'Maryland CHART';
-const DATA_FEEDS_URL = 'https://chart.maryland.gov/DataFeeds/GetDataFeeds';
+const INCIDENTS_XML_URL = 'https://chart.maryland.gov/DataFeeds/GetIncidentXml';
 const PUBLIC_INCIDENTS_URL = 'https://chart.maryland.gov/Incidents/GetIncidents';
 const PASADENA_LAT = 39.1073;
 const PASADENA_LON = -76.5711;
@@ -14,6 +14,23 @@ function requiredEnv(name) {
   const value = process.env[name];
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;
+}
+
+function decodeXml(value) {
+  return String(value ?? '')
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;|&#39;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
+}
+
+function tagValue(block, tag) {
+  const match = block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+  return match ? decodeXml(match[1]).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : null;
 }
 
 function supabaseHeaders(extra = {}) {
@@ -58,67 +75,43 @@ async function getSourceRecord() {
   return rows[0];
 }
 
-async function fetchRaw(url, accept = '*/*') {
-  const response = await fetch(url, {
+async function fetchXml() {
+  const response = await fetch(INCIDENTS_XML_URL, {
     redirect: 'follow',
     headers: {
-      'User-Agent': 'PasadenaCurrent/0.1 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
-      Accept: accept,
+      'User-Agent': 'PasadenaCurrent/0.2 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
+      Accept: 'application/xml,text/xml;q=0.9,*/*;q=0.5',
     },
   });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return response;
-}
-
-function discoverJsonUrls(html) {
-  const found = new Set();
-  const absoluteOrRelative = /(?:href|url|data-url|onclick)[^>\n]*?["']([^"']*Json[^"']*)["']/gi;
-  for (const match of html.matchAll(absoluteOrRelative)) {
-    const raw = match[1].replace(/&amp;/g, '&');
-    try { found.add(new URL(raw, DATA_FEEDS_URL).toString()); } catch { /* ignore */ }
+  if (!response.ok) throw new Error(`CHART incident feed failed: ${response.status} ${response.statusText}`);
+  const text = await response.text();
+  if (!/<Incident(?:\s|>)/i.test(text) && !/<Incidents(?:\s|>)/i.test(text)) {
+    throw new Error('CHART incident feed did not look like incident XML');
   }
-  const pathOnly = /(\/DataFeeds\/[A-Za-z0-9_-]*Json)/gi;
-  for (const match of html.matchAll(pathOnly)) found.add(new URL(match[1], DATA_FEEDS_URL).toString());
-
-  const fallbacks = [
-    '/DataFeeds/GetTrafficEventsJson',
-    '/DataFeeds/GetIncidentsJson',
-    '/DataFeeds/GetTrafficIncidentsJson',
-    '/DataFeeds/GetRoadClosuresJson',
-  ];
-  fallbacks.forEach((path) => found.add(new URL(path, DATA_FEEDS_URL).toString()));
-
-  return [...found].filter((url) => {
-    const path = new URL(url).pathname.toLowerCase();
-    if (!/(traffic|incident|event|closure)/.test(path)) return false;
-    return !/(camera|speed|weather|sign|travel|snow)/.test(path);
-  });
+  return text;
 }
 
-function scoreArray(array) {
-  if (!Array.isArray(array) || !array.length) return 0;
-  const sample = array.find((x) => x && typeof x === 'object' && !Array.isArray(x));
-  if (!sample) return 0;
-  let score = 0;
-  for (const key of ['id','county','description','name','lat','lon','startDateTime','incidentType']) if (key in sample) score += 1;
-  return score;
-}
-
-function findBestEventArray(value) {
-  let best = null;
-  let bestScore = 0;
-  const visit = (node, depth = 0) => {
-    if (depth > 5 || node == null) return;
-    if (Array.isArray(node)) {
-      const score = scoreArray(node);
-      if (score > bestScore) { best = node; bestScore = score; }
-      node.slice(0, 5).forEach((item) => visit(item, depth + 1));
-      return;
-    }
-    if (typeof node === 'object') Object.values(node).forEach((item) => visit(item, depth + 1));
-  };
-  visit(value);
-  return bestScore >= 3 ? best : null;
+function parseIncidents(xml) {
+  const events = [];
+  for (const match of String(xml).matchAll(/<Incident(?:\s[^>]*)?>[\s\S]*?<\/Incident>/gi)) {
+    const block = match[0];
+    events.push({
+      id: tagValue(block, 'id'),
+      trackingNumber: tagValue(block, 'trackingNumber'),
+      closed: tagValue(block, 'closed'),
+      county: tagValue(block, 'county'),
+      description: tagValue(block, 'description') || tagValue(block, 'name'),
+      incidentType: tagValue(block, 'incidentType'),
+      direction: tagValue(block, 'direction'),
+      lanesStatus: tagValue(block, 'lanesStatus') || tagValue(block, 'lanesClosed'),
+      trafficAlert: tagValue(block, 'trafficAlert'),
+      trafficAlertTextMsg: tagValue(block, 'trafficAlertTextMsg') || tagValue(block, 'publicComments'),
+      lat: tagValue(block, 'lat'),
+      lon: tagValue(block, 'lon'),
+      startDateTime: tagValue(block, 'startDateTime') || tagValue(block, 'createTime'),
+    });
+  }
+  return events;
 }
 
 function milesBetween(lat1, lon1, lat2, lon2) {
@@ -130,110 +123,67 @@ function milesBetween(lat1, lon1, lat2, lon2) {
   return earthMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function firstValue(event, names) {
-  for (const name of names) if (event?.[name] !== undefined && event?.[name] !== null && event?.[name] !== '') return event[name];
-  return null;
+function isTrue(value) {
+  return String(value ?? '').trim().toLowerCase() === 'true';
 }
 
 function localTrafficEvent(event) {
-  if (event.closed === true || String(event.closed).toLowerCase() === 'true') return false;
-  const county = String(firstValue(event, ['county','countyName','County']) ?? '');
-  const text = [
-    firstValue(event, ['description','name','trafficAlertTextMsg','publicComments']),
-    firstValue(event, ['route','routeNumber','location']),
-  ].filter(Boolean).join(' ');
-
-  const explicitLocal = /(pasadena|mountain\s+road|md[- ]?177|route\s+177|fort\s+smallwood|lake\s+shore|hog\s+neck|solley|edwin\s+raynor|jumpers\s+hole|route\s+100|md[- ]?100|route\s+10|md[- ]?10)/i.test(text);
+  if (isTrue(event.closed)) return false;
+  const text = [event.description, event.trafficAlertTextMsg].filter(Boolean).join(' ');
+  const explicitLocal = /(pasadena|mountain\s+road|md[- ]?177|route\s+177|fort\s+smallwood|md[- ]?173|lake\s+shore|hog\s+neck|solley|edwin\s+raynor|jumpers\s+hole|route\s+100|md[- ]?100|route\s+10|md[- ]?10|duvall\s+highway|rivi[eè]ra\s+beach|bodkin)/i.test(text);
   if (explicitLocal) return true;
-  if (!/anne arundel/i.test(county)) return false;
-
-  const lat = Number(firstValue(event, ['lat','latitude','Latitude']));
-  const lon = Number(firstValue(event, ['lon','lng','longitude','Longitude']));
+  if (!/anne arundel/i.test(String(event.county ?? ''))) return false;
+  const lat = Number(event.lat);
+  const lon = Number(event.lon);
   return Number.isFinite(lat) && Number.isFinite(lon) && milesBetween(PASADENA_LAT, PASADENA_LON, lat, lon) <= MAX_RADIUS_MILES;
 }
 
 function stableEventId(event) {
-  const raw = firstValue(event, ['id','trackingNumber','eventId','eventID']);
-  if (raw !== null) return `chart:${raw}`;
-  const fingerprint = JSON.stringify([
-    firstValue(event, ['description','name']),
-    firstValue(event, ['startDateTime','createTime']),
-    firstValue(event, ['lat','latitude']),
-    firstValue(event, ['lon','longitude']),
-  ]);
+  const raw = event.id || event.trackingNumber;
+  if (raw) return `chart:${raw}`;
+  const fingerprint = JSON.stringify([event.description, event.startDateTime, event.lat, event.lon]);
   return `chart:${createHash('sha256').update(fingerprint).digest('hex').slice(0, 24)}`;
 }
 
 function isoOrNull(value) {
   if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
-}
-
-async function loadChartEvents() {
-  const feedPage = await (await fetchRaw(DATA_FEEDS_URL, 'text/html')).text();
-  const candidates = discoverJsonUrls(feedPage);
-  console.log(`CHART JSON candidates: ${candidates.join(', ')}`);
-
-  const combined = new Map();
-  let successfulFeeds = 0;
-  const failures = [];
-
-  for (const url of candidates) {
-    try {
-      const response = await fetchRaw(url, 'application/json,text/plain;q=0.9,*/*;q=0.8');
-      const text = await response.text();
-      const json = JSON.parse(text);
-      const events = findBestEventArray(json);
-      if (!events) throw new Error('JSON did not contain a recognizable traffic-event array');
-      successfulFeeds += 1;
-      for (const event of events) {
-        if (!event || typeof event !== 'object' || Array.isArray(event)) continue;
-        combined.set(stableEventId(event), event);
-      }
-      console.log(`Loaded ${events.length} CHART records from ${url}`);
-    } catch (error) {
-      failures.push(`${url}: ${error instanceof Error ? error.message : error}`);
-    }
-  }
-
-  if (!successfulFeeds) throw new Error(`No CHART JSON traffic feed succeeded. ${failures.join(' | ')}`);
-  return [...combined.values()];
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 async function main() {
   const source = await getSourceRecord();
-  const chartEvents = await loadChartEvents();
-  const local = chartEvents.filter(localTrafficEvent);
+  const xml = await fetchXml();
+  const statewide = parseIncidents(xml);
+  const local = statewide.filter(localTrafficEvent);
 
-  // Only expire the prior snapshot after at least one official CHART feed was fetched successfully.
+  // Only expire the previous snapshot after the official feed was successfully fetched and parsed.
   await patchActiveFalse();
 
   const seenAt = new Date().toISOString();
   for (const event of local) {
-    const lat = Number(firstValue(event, ['lat','latitude','Latitude']));
-    const lon = Number(firstValue(event, ['lon','lng','longitude','Longitude']));
-    const description = String(firstValue(event, ['description','name']) ?? 'Traffic event').trim();
+    const lat = Number(event.lat);
+    const lon = Number(event.lon);
     await upsertTraffic({
       source_event_id: stableEventId(event),
       source_id: source.id,
-      description,
-      incident_type: firstValue(event, ['incidentType','eventType','typeDescription'])?.toString() ?? null,
-      county: firstValue(event, ['county','countyName','County'])?.toString() ?? null,
-      direction: firstValue(event, ['direction'])?.toString() ?? null,
-      lanes_status: firstValue(event, ['lanesStatus','lanesClosed'])?.toString() ?? null,
-      traffic_alert: Boolean(firstValue(event, ['trafficAlert'])),
-      traffic_alert_text: firstValue(event, ['trafficAlertTextMsg','publicComments'])?.toString() ?? null,
+      description: event.description || 'Traffic event',
+      incident_type: event.incidentType || null,
+      county: event.county || null,
+      direction: event.direction || null,
+      lanes_status: event.lanesStatus || null,
+      traffic_alert: isTrue(event.trafficAlert),
+      traffic_alert_text: event.trafficAlertTextMsg || null,
       latitude: Number.isFinite(lat) ? lat : null,
       longitude: Number.isFinite(lon) ? lon : null,
-      start_at: isoOrNull(firstValue(event, ['startDateTime','createTime'])),
+      start_at: isoOrNull(event.startDateTime),
       last_seen_at: seenAt,
       source_url: PUBLIC_INCIDENTS_URL,
       active: true,
     });
   }
 
-  console.log(JSON.stringify({ official_records: chartEvents.length, local_active: local.length, radius_miles: MAX_RADIUS_MILES }));
+  console.log(JSON.stringify({ feed: INCIDENTS_XML_URL, statewide_records: statewide.length, local_active: local.length, radius_miles: MAX_RADIUS_MILES }));
 }
 
 await main();
