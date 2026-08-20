@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Submit a community story, neighborhood update, opinion or tip to The Pasadena Current." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; connect-src https://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'" />
+  <title>Submit to The Pasadena Current</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="./submit.css" />
+</head>
+<body>
+  <header class="site-header submit-header">
+    <div class="wrap header-inner">
+      <div>
+        <p class="eyebrow">Pasadena, Maryland · Community desk</p>
+        <h1><span class="brand-the">The</span> Pasadena Current</h1>
+        <p class="tagline">Tell Pasadena what is happening where you live, work, boat and gather.</p>
+      </div>
+      <a class="header-link" href="../">← Back to the Current</a>
+    </div>
+  </header>
+
+  <main class="wrap submit-wrap">
+    <section class="submit-intro">
+      <p class="section-label">Community Voices</p>
+      <h2>Your neighborhood. Your reporting. Your point of view.</h2>
+      <p>Send us something Pasadena should know: a story you reported, a neighborhood update, community commentary, an event, or a tip for the editor. Nothing submitted here goes straight onto the site.</p>
+      <div class="editorial-promise">
+        <strong>What happens after you submit</strong>
+        <ol>
+          <li>Your original submission is saved exactly as you wrote it.</li>
+          <li>Our AI copy desk may correct grammar, spelling, repetition and organization. It is instructed not to invent facts or change your viewpoint.</li>
+          <li>A human editor compares the original with the edited version and decides whether to publish it.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="submission-panel">
+      <form id="submissionForm" class="submission-form">
+        <div class="form-grid two-col">
+          <label>
+            What are you sending?
+            <select id="submissionType" required>
+              <option value="news_report">Community news / reported story</option>
+              <option value="opinion">Opinion / commentary</option>
+              <option value="community_notice">Neighborhood notice</option>
+              <option value="event">Community event</option>
+              <option value="tip">Tip for the editor</option>
+            </select>
+          </label>
+          <label>
+            How should we credit you if published?
+            <select id="bylinePreference" required>
+              <option value="full_name">My full name</option>
+              <option value="first_name_last_initial">First name + last initial</option>
+              <option value="anonymous">Anonymous to readers</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid two-col">
+          <label>
+            Your name <span class="private-note">private unless you choose a named byline</span>
+            <input id="submitterName" type="text" maxlength="120" autocomplete="name" required />
+          </label>
+          <label>
+            Your email <span class="private-note">never published</span>
+            <input id="submitterEmail" type="email" maxlength="254" autocomplete="email" required />
+          </label>
+        </div>
+
+        <label>
+          Headline or subject
+          <input id="title" type="text" minlength="5" maxlength="180" placeholder="What should Pasadena know?" required />
+        </label>
+
+        <label>
+          Your story or commentary
+          <textarea id="description" rows="13" minlength="40" maxlength="8000" placeholder="Write it in your own voice. Tell us what happened, what you observed, what you know firsthand, and what you think the community should understand." required></textarea>
+          <span class="field-help">Please distinguish what you personally observed from what someone else told you. Avoid private home addresses, personal contact information or identifying information about minors unless it is genuinely necessary to the story.</span>
+        </label>
+
+        <div class="form-grid two-col">
+          <label>
+            General location
+            <input id="location" type="text" maxlength="240" placeholder="Example: Mountain Road near Tick Neck Park" />
+          </label>
+          <label>
+            Supporting link
+            <input id="sourceUrl" type="url" maxlength="1000" placeholder="https://…" />
+          </label>
+        </div>
+
+        <div id="eventFields" class="form-grid two-col hidden">
+          <label>
+            Event starts
+            <input id="startsAt" type="datetime-local" />
+          </label>
+          <label>
+            Event ends
+            <input id="endsAt" type="datetime-local" />
+          </label>
+        </div>
+
+        <label class="honeypot" aria-hidden="true">
+          Company
+          <input id="company" type="text" tabindex="-1" autocomplete="off" />
+        </label>
+
+        <label class="consent-row">
+          <input id="consent" type="checkbox" required />
+          <span>I confirm this is my submission and give The Pasadena Current permission to edit it for clarity and publish it after human review. I understand publication is not guaranteed.</span>
+        </label>
+
+        <div class="submit-actions">
+          <button id="submitButton" class="submit-button" type="submit">Send to the editor’s desk</button>
+          <p id="formMessage" class="submit-message" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p><strong>The Pasadena Current</strong> · A place for Pasadena to report, explain, ask and be heard.</p>
+      <p>Submission contact details are for editorial use and are not part of the public Community Voices feed.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
