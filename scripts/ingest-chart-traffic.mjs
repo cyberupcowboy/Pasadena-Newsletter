@@ -5,7 +5,10 @@ const INCIDENTS_XML_URL = 'https://chart.maryland.gov/DataFeeds/GetIncidentXml';
 const PUBLIC_INCIDENTS_URL = 'https://chart.maryland.gov/Incidents/GetIncidents';
 const PASADENA_LAT = 39.1073;
 const PASADENA_LON = -76.5711;
-const MAX_RADIUS_MILES = Number(process.env.TRAFFIC_RADIUS_MILES ?? '15');
+const MAX_RADIUS_MILES = Number(process.env.TRAFFIC_RADIUS_MILES ?? '8');
+const LOCAL_ROAD_RE = /(pasadena|mountain\s+road|md[- ]?177|route\s+177|fort\s+smallwood|md[- ]?173|lake\s+shore|hog\s+neck|solley|edwin\s+raynor|jumpers\s+hole|route\s+100|md[- ]?100|route\s+10|md[- ]?10|duvall\s+highway|rivi[eè]ra\s+beach|bodkin)/i;
+const MEANINGFUL_TYPE_RE = /(collision|injury|property damage|debris|disabled|closure|weather|flood|fire|congestion|hazard)/i;
+const MEANINGFUL_TEXT_RE = /\b(congestion|crash|collision|closed|closure|debris|disabled|downed|flood|fire|lane(?:s)? closed|blocked|overturn|jack-?knif|tree down|wires? down)\b/i;
 
 const SUPABASE_URL = requiredEnv('SUPABASE_URL').replace(/\/$/, '');
 const SUPABASE_SECRET_KEY = requiredEnv('SUPABASE_SECRET_KEY');
@@ -79,7 +82,7 @@ async function fetchXml() {
   const response = await fetch(INCIDENTS_XML_URL, {
     redirect: 'follow',
     headers: {
-      'User-Agent': 'PasadenaCurrent/0.2 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
+      'User-Agent': 'PasadenaCurrent/0.3 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
       Accept: 'application/xml,text/xml;q=0.9,*/*;q=0.5',
     },
   });
@@ -127,11 +130,16 @@ function isTrue(value) {
   return String(value ?? '').trim().toLowerCase() === 'true';
 }
 
+function isMeaningful(event) {
+  if (isTrue(event.trafficAlert)) return true;
+  const text = [event.description, event.trafficAlertTextMsg, event.lanesStatus].filter(Boolean).join(' ');
+  return MEANINGFUL_TYPE_RE.test(event.incidentType || '') || MEANINGFUL_TEXT_RE.test(text);
+}
+
 function localTrafficEvent(event) {
-  if (isTrue(event.closed)) return false;
+  if (isTrue(event.closed) || !isMeaningful(event)) return false;
   const text = [event.description, event.trafficAlertTextMsg].filter(Boolean).join(' ');
-  const explicitLocal = /(pasadena|mountain\s+road|md[- ]?177|route\s+177|fort\s+smallwood|md[- ]?173|lake\s+shore|hog\s+neck|solley|edwin\s+raynor|jumpers\s+hole|route\s+100|md[- ]?100|route\s+10|md[- ]?10|duvall\s+highway|rivi[eè]ra\s+beach|bodkin)/i.test(text);
-  if (explicitLocal) return true;
+  if (LOCAL_ROAD_RE.test(text)) return true;
   if (!/anne arundel/i.test(String(event.county ?? ''))) return false;
   const lat = Number(event.lat);
   const lon = Number(event.lon);
