@@ -26,6 +26,7 @@ const els = {
   storyTemplate: document.querySelector('#storyTemplate'),
 };
 
+let allStories = [];
 let stories = [];
 let activeCategory = 'all';
 let featuredStoryId = null;
@@ -60,6 +61,41 @@ function relevanceLabel(score) {
   if (value >= 55) return 'Strong local';
   if (value >= 30) return 'Countywide';
   return 'Regional';
+}
+
+function sourceKey(story) {
+  try {
+    return new URL(story.source_url).hostname.replace(/^www\./, '').toLowerCase();
+  } catch {
+    return story.source_title || 'unknown-source';
+  }
+}
+
+function isRoutinePoliceStory(story) {
+  return /\/police-department\//i.test(story.source_url || '')
+    && ['crime', 'public_safety'].includes(story.category);
+}
+
+function diversifyStories(items) {
+  const selected = [];
+  const sourceCounts = new Map();
+  let routinePolice = 0;
+
+  for (const story of items) {
+    const source = sourceKey(story);
+    const sourceCount = sourceCounts.get(source) || 0;
+    const police = isRoutinePoliceStory(story);
+
+    // The general homepage is a community brief, not a police blotter.
+    if (police && routinePolice >= 1) continue;
+    if (sourceCount >= 2) continue;
+
+    selected.push(story);
+    sourceCounts.set(source, sourceCount + 1);
+    if (police) routinePolice += 1;
+  }
+
+  return selected;
 }
 
 function formatDate(value) {
@@ -136,7 +172,7 @@ function renderCard(story) {
 }
 
 function renderFilters() {
-  const categories = [...new Set(stories.map((story) => story.category).filter(Boolean))].sort();
+  const categories = [...new Set(allStories.map((story) => story.category).filter(Boolean))].sort();
   els.categoryFilters.replaceChildren();
 
   const makeButton = (value, label) => {
@@ -159,7 +195,8 @@ function renderFilters() {
 
 function renderGrid() {
   els.storyGrid.replaceChildren();
-  const filtered = stories.filter((story) => {
+  const source = activeCategory === 'all' ? stories : allStories;
+  const filtered = source.filter((story) => {
     if (story.story_id === featuredStoryId) return false;
     return activeCategory === 'all' || story.category === activeCategory;
   });
@@ -170,8 +207,32 @@ function renderGrid() {
 
 function renderTraffic(items) {
   els.trafficList.replaceChildren();
+
   if (!items.length) {
-    setHidden(els.roadSection, true);
+    const quiet = document.createElement('article');
+    quiet.className = 'traffic-item traffic-quiet';
+
+    const marker = document.createElement('span');
+    marker.className = 'road-marker';
+    marker.textContent = 'Road desk';
+
+    const title = document.createElement('h3');
+    title.textContent = 'No active CHART disruptions reported near Pasadena right now.';
+
+    const details = document.createElement('p');
+    details.className = 'traffic-details';
+    details.textContent = 'The road desk refreshes throughout the day from Maryland CHART.';
+
+    const link = document.createElement('a');
+    link.className = 'utility-link';
+    link.href = 'https://chart.maryland.gov/Incidents/GetIncidents';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Open Maryland CHART →';
+
+    quiet.append(marker, title, details, link);
+    els.trafficList.append(quiet);
+    setHidden(els.roadSection, false);
     return;
   }
 
@@ -354,7 +415,8 @@ async function loadCurrent() {
     els.storyCount.textContent = 'News unavailable';
     setHidden(els.storySection, true);
   } else {
-    stories = storyResult.data || [];
+    allStories = storyResult.data || [];
+    stories = diversifyStories(allStories);
     els.storyCount.textContent = `${stories.length} ${stories.length === 1 ? 'story' : 'stories'} in today’s current`;
     if (stories.length) {
       renderFeatured(stories[0]);
