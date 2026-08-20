@@ -1,0 +1,36 @@
+name: Ingest Pasadena Traffic
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingest-pasadena-traffic
+  cancel-in-progress: true
+
+jobs:
+  traffic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Validate traffic collector
+        run: node --check scripts/ingest-chart-traffic.mjs
+
+      - name: Refresh Pasadena-area CHART events
+        env:
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          TRAFFIC_RADIUS_MILES: '15'
+        run: node scripts/ingest-chart-traffic.mjs
