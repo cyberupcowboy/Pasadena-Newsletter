@@ -29,6 +29,15 @@
       <span id="storyCount" class="story-count">Checking the current…</span>
     </section>
 
+    <section class="community-callout">
+      <div>
+        <p class="section-label">Community Voices</p>
+        <h2>See something Pasadena should know?</h2>
+        <p>Report a neighborhood story, share community commentary, send an event or tip the editor. Resident submissions are edited for clarity and always reviewed by a human before publication.</p>
+      </div>
+      <a class="community-submit-link" href="./submit/">Send something to the Current →</a>
+    </section>
+
     <section id="loadingState" class="state-card">Checking today’s current…</section>
     <section id="errorState" class="state-card error hidden"></section>
 
@@ -63,6 +72,17 @@
 
     <section id="emptyState" class="state-card hidden">Nothing has cleared the editor’s desk yet. Check back soon.</section>
 
+    <section id="voicesSection" class="voices-section hidden">
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="section-label">Community Voices</p>
+          <h2>From the people who live here</h2>
+        </div>
+        <a class="source-note community-inline-link" href="./submit/">Submit your own →</a>
+      </div>
+      <div id="voicesGrid" class="voices-grid"></div>
+    </section>
+
     <section id="eventsSection" class="utility-section events-section hidden">
       <div class="section-heading compact-heading">
         <div>
@@ -78,7 +98,7 @@
   <footer class="site-footer">
     <div class="wrap footer-inner">
       <p><strong>The Pasadena Current</strong> · Local news, community life and what matters around 21122.</p>
-      <p>We summarize and link. Original reporting stays with the original source. <a class="editor-link" href="./editorial/">Editor login</a></p>
+      <p><a class="editor-link" href="./submit/">Community submissions</a> · We summarize and link. Original reporting stays with the original source. <a class="editor-link" href="./editorial/">Editor login</a></p>
     </div>
   </footer>
 
