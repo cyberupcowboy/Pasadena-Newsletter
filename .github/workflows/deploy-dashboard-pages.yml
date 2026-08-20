@@ -35,7 +35,9 @@ jobs:
       - name: Validate browser scripts
         run: |
           node --check public-site/app.js
+          node --check public-site/submit/app.js
           node --check dashboard/app.js
+          node --check dashboard/community.js
 
       - name: Build Pages artifact
         run: |
