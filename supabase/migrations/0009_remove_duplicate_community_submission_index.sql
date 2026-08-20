@@ -1,0 +1,1 @@
+drop index if exists public.community_submissions_moderation_created_idx;
