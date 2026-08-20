@@ -19,6 +19,8 @@ const els = {
   featuredStory: document.querySelector('#featuredStory'),
   storyGrid: document.querySelector('#storyGrid'),
   categoryFilters: document.querySelector('#categoryFilters'),
+  voicesSection: document.querySelector('#voicesSection'),
+  voicesGrid: document.querySelector('#voicesGrid'),
   eventsSection: document.querySelector('#eventsSection'),
   eventGrid: document.querySelector('#eventGrid'),
   storyTemplate: document.querySelector('#storyTemplate'),
@@ -35,6 +37,21 @@ function setHidden(element, hidden) {
 function labelCategory(value) {
   if (!value) return 'Community';
   return value.replaceAll('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function labelSubmissionType(value) {
+  return ({
+    news_report: 'Community report',
+    opinion: 'Opinion',
+    community_notice: 'Neighborhood note',
+    event: 'Community event',
+    tip: 'Community tip',
+    yard_sale: 'Yard sale',
+    lost_found: 'Lost & found',
+    business: 'Local business',
+    photo: 'Community photo',
+    other: 'Community voice',
+  })[value] || 'Community voice';
 }
 
 function relevanceLabel(score) {
@@ -230,6 +247,56 @@ function renderEvents(items) {
   setHidden(els.eventsSection, false);
 }
 
+function renderVoices(items) {
+  els.voicesGrid.replaceChildren();
+  if (!items.length) {
+    setHidden(els.voicesSection, true);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (const item of items) {
+    const card = document.createElement('article');
+    card.className = 'voice-card';
+
+    const type = document.createElement('p');
+    type.className = 'voice-type';
+    type.textContent = labelSubmissionType(item.submission_type);
+
+    const title = document.createElement('h3');
+    title.textContent = item.headline;
+
+    const byline = document.createElement('p');
+    byline.className = 'voice-byline';
+    byline.textContent = `By ${item.byline}`;
+
+    const body = document.createElement('p');
+    body.className = 'voice-body';
+    body.textContent = item.body;
+
+    const meta = document.createElement('p');
+    meta.className = 'voice-meta';
+    meta.textContent = [item.location_text, formatDate(item.published_at)].filter(Boolean).join(' · ');
+
+    card.append(type, title, byline, body, meta);
+
+    if (item.source_url) {
+      const link = document.createElement('a');
+      link.className = 'utility-link';
+      link.href = item.source_url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'Supporting link →';
+      card.append(link);
+    }
+
+    fragment.append(card);
+  }
+
+  els.voicesGrid.append(fragment);
+  setHidden(els.voicesSection, false);
+}
+
 async function fetchStories() {
   return supabase
     .from('published_stories')
@@ -259,15 +326,24 @@ async function fetchEvents() {
     .limit(8);
 }
 
+async function fetchVoices() {
+  return supabase
+    .from('published_community_submissions')
+    .select('submission_id,submission_type,byline,headline,body,location_text,source_url,published_at,updated_at')
+    .order('published_at', { ascending: false })
+    .limit(8);
+}
+
 async function loadCurrent() {
   els.editionDate.textContent = new Intl.DateTimeFormat('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   }).format(new Date());
 
-  const [storyResult, trafficResult, eventResult] = await Promise.all([
+  const [storyResult, trafficResult, eventResult, voicesResult] = await Promise.all([
     fetchStories(),
     fetchTraffic(),
     fetchEvents(),
+    fetchVoices(),
   ]);
 
   setHidden(els.loadingState, true);
@@ -304,6 +380,13 @@ async function loadCurrent() {
     setHidden(els.eventsSection, true);
   } else {
     renderEvents(eventResult.data || []);
+  }
+
+  if (voicesResult.error) {
+    errors.push(`community voices: ${voicesResult.error.message}`);
+    setHidden(els.voicesSection, true);
+  } else {
+    renderVoices(voicesResult.data || []);
   }
 
   if (errors.length) {
