@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="The Pasadena Current — human-reviewed local news and community updates for Pasadena, Maryland." />
+  <meta name="description" content="The Pasadena Current — human-reviewed local news, road conditions, events and community updates for Pasadena, Maryland." />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
   <title>The Pasadena Current</title>
   <link rel="stylesheet" href="./styles.css" />
@@ -26,14 +26,24 @@
   <main class="wrap">
     <section class="intro-strip">
       <p>A local-first briefing for Pasadena and the nearby Anne Arundel communities that affect life here—from Mountain Road to the Magothy and out toward the Bay.</p>
-      <span id="storyCount" class="story-count">Loading…</span>
+      <span id="storyCount" class="story-count">Checking the current…</span>
     </section>
 
     <section id="loadingState" class="state-card">Checking today’s current…</section>
     <section id="errorState" class="state-card error hidden"></section>
-    <section id="emptyState" class="state-card hidden">Nothing has cleared the editor’s desk yet. Check back soon.</section>
 
-    <section id="content" class="hidden">
+    <section id="roadSection" class="utility-section hidden">
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="section-label">On the road</p>
+          <h2>What’s moving around Pasadena</h2>
+        </div>
+        <p class="source-note">Live Maryland CHART road information</p>
+      </div>
+      <div id="trafficList" class="traffic-list"></div>
+    </section>
+
+    <section id="storySection" class="hidden">
       <section class="featured-section">
         <p class="section-label">Making waves</p>
         <article id="featuredStory" class="featured-card"></article>
@@ -49,6 +59,19 @@
         </div>
         <div id="storyGrid" class="story-grid"></div>
       </section>
+    </section>
+
+    <section id="emptyState" class="state-card hidden">Nothing has cleared the editor’s desk yet. Check back soon.</section>
+
+    <section id="eventsSection" class="utility-section events-section hidden">
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="section-label">Around town</p>
+          <h2>Coming up in Pasadena</h2>
+        </div>
+        <p class="source-note">Official local listings</p>
+      </div>
+      <div id="eventGrid" class="event-grid"></div>
     </section>
   </main>
 
