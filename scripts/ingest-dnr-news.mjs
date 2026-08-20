@@ -7,9 +7,10 @@ const CATEGORY_URLS = [
   'https://news.maryland.gov/dnr/category/the-bay/',
   'https://news.maryland.gov/dnr/tag/weekly-fishing-report/',
 ];
-const MAX_ITEMS = Number(process.env.MAX_ITEMS ?? '15');
+const MAX_ITEMS = Number(process.env.MAX_ITEMS ?? '20');
+const MAX_AGE_DAYS = Number(process.env.MAX_AGE_DAYS ?? '21');
 const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.6-luna';
-const MIN_RELEVANCE_TO_STORE = Number(process.env.MIN_RELEVANCE_TO_STORE ?? '25');
+const MIN_RELEVANCE_TO_STORE = Number(process.env.MIN_RELEVANCE_TO_STORE ?? '45');
 
 const OPENAI_API_KEY = requiredEnv('OPENAI_API_KEY');
 const SUPABASE_URL = requiredEnv('SUPABASE_URL').replace(/\/$/, '');
@@ -23,7 +24,7 @@ function requiredEnv(name) {
 }
 
 function htmlDecode(value) {
-  return value
+  return String(value ?? '')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
     .replace(/&quot;/gi, '"')
@@ -74,6 +75,12 @@ function extractLinks(html) {
 function publishedAtFromUrl(url) {
   const match = new URL(url).pathname.match(/\/dnr\/(\d{4})\/(\d{2})\/(\d{2})\//);
   return match ? `${match[1]}-${match[2]}-${match[3]}T12:00:00Z` : null;
+}
+
+function isFreshUrl(url) {
+  const publishedAt = publishedAtFromUrl(url);
+  if (!publishedAt) return false;
+  return Date.now() - new Date(publishedAt).getTime() <= MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
 }
 
 function supabaseHeaders(extra = {}) {
@@ -135,7 +142,10 @@ async function triageStory({ title, text, url }) {
     body: JSON.stringify({
       model: OPENAI_MODEL,
       input: [
-        { role: 'system', content: triagePrompt },
+        {
+          role: 'system',
+          content: `${triagePrompt}\n\nFor DNR material, emphasize current Pasadena/Magothy/Bodkin/Chesapeake boating, fishing, water-quality, access, navigation, and safety value. Do not elevate routine statewide archival material merely because Pasadena residents may boat.`,
+        },
         { role: 'user', content: `SOURCE: ${SOURCE_NAME}\nURL: ${url}\nTITLE: ${title}\n\nSOURCE TEXT:\n${text.slice(0, 14000)}` },
       ],
       text: { format: { type: 'json_schema', name: 'pasadena_story_triage', strict: true, schema: storySchema } },
@@ -152,7 +162,7 @@ async function triageStory({ title, text, url }) {
 async function fetchText(url) {
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'PasadenaCurrent/0.1 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
+      'User-Agent': 'PasadenaCurrent/0.3 (+https://github.com/cyberupcowboy/Pasadena-Newsletter)',
       Accept: 'text/html,application/xhtml+xml',
     },
   });
@@ -167,11 +177,15 @@ async function main() {
   for (const categoryUrl of CATEGORY_URLS) {
     const html = await fetchText(categoryUrl);
     for (const link of extractLinks(html)) {
-      if (!seen.has(link)) { seen.add(link); allLinks.push(link); }
+      if (!seen.has(link) && isFreshUrl(link)) {
+        seen.add(link);
+        allLinks.push(link);
+      }
     }
   }
+
   const links = allLinks.slice(0, MAX_ITEMS);
-  console.log(`Found ${links.length} candidate DNR items.`);
+  console.log(`Found ${links.length} fresh candidate DNR items within ${MAX_AGE_DAYS} days.`);
 
   let inserted = 0, skipped = 0, filtered = 0, failed = 0;
   for (const url of links) {
@@ -182,9 +196,8 @@ async function main() {
       const text = stripHtml(html);
       if (text.length < 100) throw new Error('Extracted source text is unexpectedly short');
       const triage = await triageStory({ title, text, url });
-      if (triage.pasadena_relevance < MIN_RELEVANCE_TO_STORE && triage.urgency < 70) {
+      if (triage.pasadena_relevance < MIN_RELEVANCE_TO_STORE && triage.urgency < 80) {
         filtered += 1;
-        console.log(`Filtered low-relevance DNR item: ${title} [relevance=${triage.pasadena_relevance}]`);
         continue;
       }
       await supabaseInsertStory({
@@ -213,7 +226,8 @@ async function main() {
       console.error(`Failed ${url}:`, error instanceof Error ? error.message : error);
     }
   }
-  console.log(JSON.stringify({ inserted, skipped, filtered, failed, candidates: links.length }));
+
+  console.log(JSON.stringify({ inserted, skipped, filtered, failed, candidates: links.length, max_age_days: MAX_AGE_DAYS }));
   if (failed > 0 && inserted === 0 && skipped === 0 && filtered === 0) process.exitCode = 1;
 }
 
