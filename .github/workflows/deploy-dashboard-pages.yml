@@ -1,10 +1,11 @@
-name: Deploy Editorial Dashboard
+name: Deploy Pasadena Current
 
 on:
   push:
     branches:
       - main
     paths:
+      - 'public-site/**'
       - 'dashboard/**'
       - '.github/workflows/deploy-dashboard-pages.yml'
   workflow_dispatch:
@@ -31,10 +32,16 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload dashboard artifact
+      - name: Build Pages artifact
+        run: |
+          mkdir -p _site/editorial
+          cp -R public-site/. _site/
+          cp -R dashboard/. _site/editorial/
+
+      - name: Upload site artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: dashboard
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
