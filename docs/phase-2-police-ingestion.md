@@ -21,25 +21,21 @@ The scheduled GitHub Actions workflow runs every two hours at minute 17 and can 
 
 ## Required GitHub Actions secrets
 
-In the repository, open **Settings → Secrets and variables → Actions → New repository secret** and add these values.
+In the repository, open **Settings → Secrets and variables → Actions → New repository secret** and add these two values.
 
 ### `OPENAI_API_KEY`
 
 Use the OpenAI project API key created for Pasadena Community Brief. Never commit this value to the repository.
-
-### `SUPABASE_URL`
-
-Value:
-
-`https://eedpedkvymohcubdaoey.supabase.co`
-
-This is not itself sensitive, but it is kept in the Actions secret set so runtime configuration stays together.
 
 ### `SUPABASE_SECRET_KEY`
 
 In the Pasadena Community Brief Supabase project, create or copy a **Secret key** from **Settings → API Keys** and store it as this GitHub Actions secret.
 
 Prefer a modern `sb_secret_...` key rather than the legacy `service_role` JWT. This key is backend-only and bypasses Row Level Security, so never expose it in frontend code, logs, issues, chat, or committed files.
+
+The Supabase project URL is non-secret runtime configuration and is already set in the workflow:
+
+`https://eedpedkvymohcubdaoey.supabase.co`
 
 ## Model
 
