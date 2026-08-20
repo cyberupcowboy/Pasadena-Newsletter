@@ -32,6 +32,11 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Validate browser scripts
+        run: |
+          node --check public-site/app.js
+          node --check dashboard/app.js
+
       - name: Build Pages artifact
         run: |
           mkdir -p _site/editorial
