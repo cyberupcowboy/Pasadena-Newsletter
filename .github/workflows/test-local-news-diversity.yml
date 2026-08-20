@@ -1,0 +1,101 @@
+name: Test Local News Diversity
+
+on:
+  push:
+    branches:
+      - feature/local-news-diversity
+    paths:
+      - 'scripts/ingest-local-news.mjs'
+      - 'scripts/ingest-chart-traffic.mjs'
+      - 'scripts/ingest-aacpl-events.mjs'
+      - 'scripts/ingest-dnr-news.mjs'
+      - 'prompts/story-triage.md'
+      - '.github/workflows/test-local-news-diversity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate collectors
+        run: |
+          node --check scripts/ingest-local-news.mjs
+          node --check scripts/ingest-chart-traffic.mjs
+          node --check scripts/ingest-aacpl-events.mjs
+          node --check scripts/ingest-dnr-news.mjs
+          node --check public-site/app.js
+
+  traffic:
+    needs: syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Test CHART traffic ingestion
+        env:
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          TRAFFIC_RADIUS_MILES: '15'
+        run: node scripts/ingest-chart-traffic.mjs
+
+  events:
+    needs: syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Test AACPL event ingestion
+        env:
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          MAX_PAGES: '3'
+        run: node scripts/ingest-aacpl-events.mjs
+
+  local-news:
+    needs: syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Test hyperlocal news ingestion
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OPENAI_MODEL: gpt-5.6-luna
+        run: node scripts/ingest-local-news.mjs
+
+  dnr:
+    needs: syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Test DNR ingestion
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OPENAI_MODEL: gpt-5.6-luna
+          MAX_ITEMS: '15'
+          MIN_RELEVANCE_TO_STORE: '25'
+        run: node scripts/ingest-dnr-news.mjs
