@@ -13,15 +13,20 @@ const els = {
   loadingState: document.querySelector('#loadingState'),
   errorState: document.querySelector('#errorState'),
   emptyState: document.querySelector('#emptyState'),
-  content: document.querySelector('#content'),
+  roadSection: document.querySelector('#roadSection'),
+  trafficList: document.querySelector('#trafficList'),
+  storySection: document.querySelector('#storySection'),
   featuredStory: document.querySelector('#featuredStory'),
   storyGrid: document.querySelector('#storyGrid'),
   categoryFilters: document.querySelector('#categoryFilters'),
+  eventsSection: document.querySelector('#eventsSection'),
+  eventGrid: document.querySelector('#eventGrid'),
   storyTemplate: document.querySelector('#storyTemplate'),
 };
 
 let stories = [];
 let activeCategory = 'all';
+let featuredStoryId = null;
 
 function setHidden(element, hidden) {
   element.classList.toggle('hidden', hidden);
@@ -32,9 +37,32 @@ function labelCategory(value) {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function relevanceLabel(score) {
+  const value = Number(score ?? 0);
+  if (value >= 80) return 'Pasadena';
+  if (value >= 55) return 'Strong local';
+  if (value >= 30) return 'Countywide';
+  return 'Regional';
+}
+
 function formatDate(value) {
   if (!value) return null;
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
+}
+
+function formatRoadTime(value) {
+  if (!value) return null;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value));
+}
+
+function formatEventTime(startsAt, endsAt) {
+  const start = new Date(startsAt);
+  const day = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(start);
+  const startTime = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(start);
+  if (!endsAt) return `${day} · ${startTime}`;
+  const end = new Date(endsAt);
+  const endTime = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(end);
+  return `${day} · ${startTime}–${endTime}`;
 }
 
 function storyMeta(story) {
@@ -43,6 +71,8 @@ function storyMeta(story) {
 
 function renderFeatured(story) {
   els.featuredStory.replaceChildren();
+  featuredStoryId = story.story_id;
+
   const top = document.createElement('div');
   top.className = 'card-topline';
 
@@ -50,11 +80,10 @@ function renderFeatured(story) {
   category.className = 'category';
   category.textContent = labelCategory(story.category);
 
-  const score = document.createElement('span');
-  score.className = 'local-score';
-  score.textContent = `Local relevance ${story.pasadena_relevance ?? 0}/100`;
-
-  top.append(category, score);
+  const relevance = document.createElement('span');
+  relevance.className = 'local-score';
+  relevance.textContent = relevanceLabel(story.pasadena_relevance);
+  top.append(category, relevance);
 
   const title = document.createElement('h2');
   title.textContent = story.headline;
@@ -80,7 +109,7 @@ function renderFeatured(story) {
 function renderCard(story) {
   const card = els.storyTemplate.content.firstElementChild.cloneNode(true);
   card.querySelector('.category').textContent = labelCategory(story.category);
-  card.querySelector('.local-score').textContent = `${story.pasadena_relevance ?? 0} local`;
+  card.querySelector('.local-score').textContent = relevanceLabel(story.pasadena_relevance);
   card.querySelector('h3').textContent = story.headline;
   card.querySelector('.summary').textContent = story.summary || '';
   card.querySelector('.story-meta').textContent = storyMeta(story);
@@ -113,46 +142,174 @@ function renderFilters() {
 
 function renderGrid() {
   els.storyGrid.replaceChildren();
-  const filtered = stories.filter((story) => activeCategory === 'all' || story.category === activeCategory);
+  const filtered = stories.filter((story) => {
+    if (story.story_id === featuredStoryId) return false;
+    return activeCategory === 'all' || story.category === activeCategory;
+  });
   const fragment = document.createDocumentFragment();
   filtered.forEach((story) => fragment.append(renderCard(story)));
   els.storyGrid.append(fragment);
 }
 
-async function loadStories() {
-  els.editionDate.textContent = new Intl.DateTimeFormat('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  }).format(new Date());
+function renderTraffic(items) {
+  els.trafficList.replaceChildren();
+  if (!items.length) {
+    setHidden(els.roadSection, true);
+    return;
+  }
 
-  const { data, error } = await supabase
+  const fragment = document.createDocumentFragment();
+  for (const item of items) {
+    const card = document.createElement('article');
+    card.className = 'traffic-item';
+
+    const marker = document.createElement('span');
+    marker.className = item.traffic_alert ? 'road-marker alert' : 'road-marker';
+    marker.textContent = item.traffic_alert ? 'Traffic alert' : (item.incident_type || 'Road update');
+
+    const title = document.createElement('h3');
+    title.textContent = item.description;
+
+    const details = document.createElement('p');
+    details.className = 'traffic-details';
+    details.textContent = [item.direction, item.lanes_status, formatRoadTime(item.start_at)].filter(Boolean).join(' · ');
+
+    const alertText = document.createElement('p');
+    alertText.className = 'traffic-alert-text';
+    alertText.textContent = item.traffic_alert_text || '';
+    if (!item.traffic_alert_text) alertText.classList.add('hidden');
+
+    const link = document.createElement('a');
+    link.className = 'utility-link';
+    link.href = item.source_url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Open Maryland CHART →';
+
+    card.append(marker, title, details, alertText, link);
+    fragment.append(card);
+  }
+  els.trafficList.append(fragment);
+  setHidden(els.roadSection, false);
+}
+
+function renderEvents(items) {
+  els.eventGrid.replaceChildren();
+  if (!items.length) {
+    setHidden(els.eventsSection, true);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (const item of items) {
+    const card = document.createElement('article');
+    card.className = 'event-card';
+
+    const date = document.createElement('p');
+    date.className = 'event-date';
+    date.textContent = formatEventTime(item.starts_at, item.ends_at);
+
+    const title = document.createElement('h3');
+    title.textContent = item.title;
+
+    const venue = document.createElement('p');
+    venue.className = 'event-venue';
+    venue.textContent = item.venue_name || 'Pasadena area';
+
+    const link = document.createElement('a');
+    link.className = 'utility-link';
+    link.href = item.source_url || 'https://www.aacpl.net/events/list';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Event details →';
+
+    card.append(date, title, venue, link);
+    fragment.append(card);
+  }
+  els.eventGrid.append(fragment);
+  setHidden(els.eventsSection, false);
+}
+
+async function fetchStories() {
+  return supabase
     .from('published_stories')
     .select('story_id,source_url,source_title,headline,summary,category,pasadena_relevance,urgency,location_text,source_published_at,approved_at,updated_at')
     .order('pasadena_relevance', { ascending: false, nullsFirst: false })
     .order('urgency', { ascending: false, nullsFirst: false })
     .order('approved_at', { ascending: false, nullsFirst: false })
     .limit(100);
-
-  setHidden(els.loadingState, true);
-
-  if (error) {
-    els.errorState.textContent = `The local brief could not be loaded: ${error.message}`;
-    setHidden(els.errorState, false);
-    els.storyCount.textContent = 'Unavailable';
-    return;
-  }
-
-  stories = data || [];
-  els.storyCount.textContent = `${stories.length} approved ${stories.length === 1 ? 'story' : 'stories'}`;
-
-  if (!stories.length) {
-    setHidden(els.emptyState, false);
-    return;
-  }
-
-  renderFeatured(stories[0]);
-  renderFilters();
-  renderGrid();
-  setHidden(els.content, false);
 }
 
-loadStories();
+async function fetchTraffic() {
+  return supabase
+    .from('traffic_events')
+    .select('source_event_id,description,incident_type,direction,lanes_status,traffic_alert,traffic_alert_text,start_at,source_url,last_seen_at')
+    .order('traffic_alert', { ascending: false })
+    .order('start_at', { ascending: false, nullsFirst: false })
+    .limit(8);
+}
+
+async function fetchEvents() {
+  const cutoff = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+  return supabase
+    .from('events')
+    .select('id,title,venue_name,starts_at,ends_at,source_url,pasadena_relevance')
+    .gte('starts_at', cutoff)
+    .order('starts_at', { ascending: true })
+    .limit(8);
+}
+
+async function loadCurrent() {
+  els.editionDate.textContent = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  }).format(new Date());
+
+  const [storyResult, trafficResult, eventResult] = await Promise.all([
+    fetchStories(),
+    fetchTraffic(),
+    fetchEvents(),
+  ]);
+
+  setHidden(els.loadingState, true);
+  const errors = [];
+
+  if (storyResult.error) {
+    errors.push(`news: ${storyResult.error.message}`);
+    els.storyCount.textContent = 'News unavailable';
+    setHidden(els.storySection, true);
+  } else {
+    stories = storyResult.data || [];
+    els.storyCount.textContent = `${stories.length} ${stories.length === 1 ? 'story' : 'stories'} in today’s current`;
+    if (stories.length) {
+      renderFeatured(stories[0]);
+      renderFilters();
+      renderGrid();
+      setHidden(els.storySection, false);
+      setHidden(els.emptyState, true);
+    } else {
+      setHidden(els.storySection, true);
+      setHidden(els.emptyState, false);
+    }
+  }
+
+  if (trafficResult.error) {
+    errors.push(`roads: ${trafficResult.error.message}`);
+    setHidden(els.roadSection, true);
+  } else {
+    renderTraffic(trafficResult.data || []);
+  }
+
+  if (eventResult.error) {
+    errors.push(`events: ${eventResult.error.message}`);
+    setHidden(els.eventsSection, true);
+  } else {
+    renderEvents(eventResult.data || []);
+  }
+
+  if (errors.length) {
+    els.errorState.textContent = `Some parts of today’s current could not be loaded (${errors.join('; ')}).`;
+    setHidden(els.errorState, false);
+  }
+}
+
+loadCurrent();
