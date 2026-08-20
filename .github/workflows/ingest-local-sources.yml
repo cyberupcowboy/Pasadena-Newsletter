@@ -1,0 +1,61 @@
+name: Ingest DNR and Local Events
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 */3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingest-local-sources
+  cancel-in-progress: false
+
+jobs:
+  dnr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Validate DNR collector
+        run: node --check scripts/ingest-dnr-news.mjs
+
+      - name: Ingest Maryland DNR news
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OPENAI_MODEL: gpt-5.6-luna
+          MAX_ITEMS: '15'
+          MIN_RELEVANCE_TO_STORE: '25'
+        run: node scripts/ingest-dnr-news.mjs
+
+  aacpl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Validate event collector
+        run: node --check scripts/ingest-aacpl-events.mjs
+
+      - name: Ingest Pasadena-area AACPL events
+        env:
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          MAX_PAGES: '3'
+        run: node scripts/ingest-aacpl-events.mjs
