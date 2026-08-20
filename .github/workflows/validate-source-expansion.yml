@@ -1,0 +1,37 @@
+name: Validate Source Expansion
+
+on:
+  push:
+    branches:
+      - feature/source-expansion
+    paths:
+      - 'scripts/ingest-dnr-news.mjs'
+      - 'scripts/ingest-aacpl-events.mjs'
+      - 'scripts/ingest-chart-traffic.mjs'
+      - 'public-site/**'
+      - '.github/workflows/ingest-local-sources.yml'
+      - '.github/workflows/ingest-chart-traffic.yml'
+      - '.github/workflows/validate-source-expansion.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Validate JavaScript
+        run: |
+          node --check scripts/ingest-dnr-news.mjs
+          node --check scripts/ingest-aacpl-events.mjs
+          node --check scripts/ingest-chart-traffic.mjs
+          node --check public-site/app.js
+          node --check dashboard/app.js
