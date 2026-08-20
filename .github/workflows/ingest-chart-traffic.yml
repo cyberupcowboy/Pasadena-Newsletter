@@ -32,5 +32,5 @@ jobs:
         env:
           SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          TRAFFIC_RADIUS_MILES: '15'
+          TRAFFIC_RADIUS_MILES: '8'
         run: node scripts/ingest-chart-traffic.mjs
