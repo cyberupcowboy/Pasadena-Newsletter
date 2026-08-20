@@ -1,0 +1,40 @@
+name: Validate Community Voices
+
+on:
+  push:
+    branches:
+      - feature/community-voices
+    paths:
+      - 'public-site/**'
+      - 'dashboard/**'
+      - 'scripts/process-community-submissions.mjs'
+      - 'prompts/community-copy-desk.md'
+      - 'supabase/migrations/0008_add_community_voices_pipeline.sql'
+      - 'supabase/migrations/0009_remove_duplicate_community_submission_index.sql'
+      - 'supabase/migrations/0010_restrict_community_submission_source_urls.sql'
+      - '.github/workflows/validate-community-voices.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check public-site/app.js
+          node --check public-site/submit/app.js
+          node --check dashboard/app.js
+          node --check dashboard/community.js
+          node --check scripts/process-community-submissions.mjs
