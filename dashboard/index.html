@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="dark light" />
   <title>The Pasadena Current — Editorial Desk</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./community.css" />
 </head>
 <body>
   <main class="shell">
@@ -17,6 +18,7 @@
       </div>
       <div class="masthead-actions">
         <a class="button ghost public-site-link" href="../">View public site</a>
+        <a class="button ghost public-site-link" href="../submit/">Submission form</a>
         <span id="sessionEmail" class="session-email hidden"></span>
         <button id="signOutButton" class="button ghost hidden" type="button">Sign out</button>
       </div>
@@ -74,6 +76,19 @@
 
       <section id="queueNotice" class="notice hidden" aria-live="polite"></section>
       <section id="storyList" class="story-list" aria-live="polite"></section>
+
+      <section id="communityReviewSection" class="community-review-section">
+        <div class="community-review-heading">
+          <div>
+            <p class="eyebrow">Community Voices</p>
+            <h2>Resident submissions</h2>
+            <p class="subhead">Compare the untouched submission with the AI copy-desk pass. Nothing here publishes without your approval.</p>
+          </div>
+          <span class="community-count"><strong id="communityCount">0</strong> waiting / recent</span>
+        </div>
+        <section id="communityNotice" class="notice hidden" aria-live="polite"></section>
+        <div id="communityList" class="community-list"></div>
+      </section>
     </section>
   </main>
 
@@ -94,6 +109,39 @@
     </article>
   </template>
 
+  <template id="communityCardTemplate">
+    <article class="community-card">
+      <div class="community-topline">
+        <div class="badge-row"><span class="badge submission-type-badge"></span><span class="badge submission-status-badge"></span><span class="badge risk-badge"></span></div>
+        <a class="source-link submission-source-link hidden" target="_blank" rel="noopener noreferrer">Supporting link ↗</a>
+      </div>
+      <div class="submitter-meta"></div>
+      <div class="community-compare">
+        <section class="copy-pane original-pane">
+          <p class="copy-label">Original — untouched</p>
+          <h3 class="original-title"></h3>
+          <div class="original-body"></div>
+        </section>
+        <section class="copy-pane edited-pane">
+          <p class="copy-label">AI copy desk / publishable draft</p>
+          <label>Headline<input class="community-title-input" type="text" maxlength="180" /></label>
+          <label>Story<textarea class="community-body-input" rows="12"></textarea></label>
+        </section>
+      </div>
+      <div class="community-ai-box">
+        <div><strong>Copy-desk note</strong><p class="community-ai-note"></p></div>
+        <div><strong>Risk flags</strong><p class="community-risk-flags"></p></div>
+      </div>
+      <div class="community-publication-fields">
+        <label>Public byline override<input class="community-byline-input" type="text" placeholder="Leave blank to use the resident’s preference" /></label>
+        <label>Public location<input class="community-location-input" type="text" placeholder="Example: Lake Shore / Mountain Road" /></label>
+        <label class="community-notes-field">Moderator notes<textarea class="community-notes-input" rows="3" placeholder="Internal notes; never published"></textarea></label>
+      </div>
+      <footer class="story-actions community-actions"><span class="community-save-state"></span><div><button class="button ghost community-save-button" type="button">Save edit</button><button class="button danger community-reject-button" type="button">Reject</button><button class="button primary community-approve-button" type="button">Approve & publish</button></div></footer>
+    </article>
+  </template>
+
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./community.js"></script>
 </body>
 </html>
