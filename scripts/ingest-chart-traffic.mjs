@@ -132,6 +132,7 @@ function isTrue(value) {
 
 function isMeaningful(event) {
   if (isTrue(event.trafficAlert)) return true;
+  if (/^Action Event\b/i.test(event.description || '')) return false;
   const text = [event.description, event.trafficAlertTextMsg, event.lanesStatus].filter(Boolean).join(' ');
   return MEANINGFUL_TYPE_RE.test(event.incidentType || '') || MEANINGFUL_TEXT_RE.test(text);
 }
