@@ -13,27 +13,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ingest:
+  state:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '24'
-
       - name: Validate collector
         run: node --check scripts/ingest-state-national-news.mjs
-
-      - name: Ingest Maryland and national news
+      - name: Ingest Maryland news
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           OPENAI_MODEL: gpt-5.6-luna
+          DESK_SCOPE: state
           STATE_ITEMS: '5'
+        run: node scripts/ingest-state-national-news.mjs
+
+  national:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate collector
+        run: node --check scripts/ingest-state-national-news.mjs
+      - name: Ingest national news
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OPENAI_MODEL: gpt-5.6-luna
+          DESK_SCOPE: national
           NATIONAL_ITEMS: '6'
         run: node scripts/ingest-state-national-news.mjs
