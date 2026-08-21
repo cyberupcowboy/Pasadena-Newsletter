@@ -23,6 +23,8 @@ const SOURCE_CONFIGS = [
   { name: 'The Hill', hosts: ['thehill.com'], scopes: ['national'] },
 ];
 
+const HEADLINE_STOPWORDS = new Set(['the','a','an','and','or','of','to','in','on','for','with','as','at','by','from','is','are','was','were','be','been','after','amid','over','new','says','say']);
+
 function requiredEnv(name) {
   const value = process.env[name];
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
@@ -109,6 +111,24 @@ function sourceWasSearched(url, searchedSources) {
   return false;
 }
 
+function headlineTokens(value) {
+  return new Set(String(value || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((token) => token.length > 2 && !HEADLINE_STOPWORDS.has(token)));
+}
+
+function headlineSimilarity(a, b) {
+  const left = headlineTokens(a);
+  const right = headlineTokens(b);
+  if (!left.size || !right.size) return 0;
+  let intersection = 0;
+  for (const token of left) if (right.has(token)) intersection += 1;
+  const union = new Set([...left, ...right]).size;
+  return union ? intersection / union : 0;
+}
+
+function nearDuplicate(headline, existingHeadlines) {
+  return existingHeadlines.some((existing) => headlineSimilarity(headline, existing) >= 0.68);
+}
+
 const itemSchema = {
   type: 'object',
   properties: {
@@ -131,9 +151,7 @@ const itemSchema = {
 
 const schema = {
   type: 'object',
-  properties: {
-    items: { type: 'array', items: itemSchema, maxItems: 8 },
-  },
+  properties: { items: { type: 'array', items: itemSchema, maxItems: 8 } },
   required: ['items'],
   additionalProperties: false,
 };
@@ -154,12 +172,16 @@ function deskRequest(scope, maxItems, recent) {
   const scopeText = scope === 'state'
     ? 'MARYLAND STATE DESK: statewide Maryland government, courts, elections, economy, major policy, infrastructure and public-interest developments.'
     : 'U.S. NATIONAL DESK: major United States government, elections, economy, courts, foreign policy, national public-safety and public-interest developments.';
+  const searchPlan = scope === 'state'
+    ? 'DISCOVERY PLAN: actively search Maryland Matters, WTOP, WBAL-TV 11 and FOX45 Baltimore for qualifying recent statewide stories before selecting the desk.'
+    : 'DISCOVERY PLAN: actively search AP/Reuters, NPR/CNN, Fox News and The Hill for qualifying recent national stories before selecting the desk.';
   const recentText = recent.length
     ? recent.map((item) => `- ${item.ai_headline || item.source_title || '(untitled)'} | ${item.source_url}`).join('\n')
     : '- None yet.';
 
   return [
     scopeText,
+    searchPlan,
     `CURRENT UTC TIME: ${new Date().toISOString()}`,
     `RETURN AT MOST ${maxItems} DISTINCT STORIES.`,
     'ALLOWED PUBLISHERS / DOMAINS:',
@@ -196,23 +218,24 @@ async function discoverDesk(scope, maxItems) {
   const outputText = data.output?.flatMap((item) => item.content ?? []).find((part) => part.type === 'output_text')?.text;
   if (!outputText) throw new Error(`OpenAI ${scope} desk response did not contain output_text`);
   const parsed = JSON.parse(outputText);
-  return { items: parsed.items ?? [], searchedSources: collectWebSources(data) };
+  return { items: parsed.items ?? [], searchedSources: collectWebSources(data), recent };
 }
 
 function isoOrNull(value) {
   if (!value) return null;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
-  const futureTolerance = Date.now() + 6 * 60 * 60 * 1000;
-  if (parsed.getTime() > futureTolerance) return null;
+  if (parsed.getTime() > Date.now() + 6 * 60 * 60 * 1000) return null;
   return parsed.toISOString();
 }
 
 async function ingestDesk(scope, maxItems) {
-  const { items, searchedSources } = await discoverDesk(scope, maxItems);
+  const { items, searchedSources, recent } = await discoverDesk(scope, maxItems);
   let inserted = 0;
   let skipped = 0;
   let rejected = 0;
+  const sourceCounts = new Map();
+  const coveredHeadlines = recent.map((item) => item.ai_headline || item.source_title).filter(Boolean);
 
   for (const item of items.slice(0, maxItems)) {
     try {
@@ -220,6 +243,16 @@ async function ingestDesk(scope, maxItems) {
       if (!config || !sourceWasSearched(item.source_url, searchedSources)) {
         rejected += 1;
         console.warn(`Rejected unverified or disallowed ${scope} URL: ${item.source_url}`);
+        continue;
+      }
+      if ((sourceCounts.get(config.name) || 0) >= 2) {
+        rejected += 1;
+        console.warn(`Rejected ${scope} item because publisher cap was reached: ${config.name}`);
+        continue;
+      }
+      if (nearDuplicate(item.ai_headline, coveredHeadlines)) {
+        rejected += 1;
+        console.warn(`Rejected near-duplicate ${scope} topic: ${item.ai_headline}`);
         continue;
       }
 
@@ -230,10 +263,8 @@ async function ingestDesk(scope, maxItems) {
 
       const source = await sourceRecord(config.name);
       if (!source) throw new Error(`Source record missing: ${config.name}`);
-
       const politicalContent = Boolean(item.political_content);
       const slant = politicalContent ? item.political_slant : 'not_political';
-      const publishedAt = isoOrNull(item.published_at);
 
       await insertStory({
         source_id: source.id,
@@ -248,7 +279,7 @@ async function ingestDesk(scope, maxItems) {
         trust_score: source.trust_score,
         urgency: item.urgency,
         location_text: item.location_text || (scope === 'state' ? 'Maryland' : 'United States'),
-        published_at: publishedAt,
+        published_at: isoOrNull(item.published_at),
         editorial_status: 'review',
         ai_model: OPENAI_MODEL,
         ai_processed_at: new Date().toISOString(),
@@ -260,7 +291,9 @@ async function ingestDesk(scope, maxItems) {
         political_slant_reason: item.political_slant_reason,
       });
       inserted += 1;
-      console.log(`Inserted ${scope}: ${item.ai_headline} [framing=${slant}, confidence=${item.political_slant_confidence}]`);
+      sourceCounts.set(config.name, (sourceCounts.get(config.name) || 0) + 1);
+      coveredHeadlines.push(item.ai_headline);
+      console.log(`Inserted ${scope}: ${item.ai_headline} [source=${config.name}, framing=${slant}, confidence=${item.political_slant_confidence}]`);
     } catch (error) {
       rejected += 1;
       console.error(`Failed ${scope} item ${item.source_url}:`, error instanceof Error ? error.message : error);
