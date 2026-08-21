@@ -1,0 +1,8 @@
+.scope-badge[data-scope="state"] { color: #8fd4df; border-color: rgba(143,212,223,.42); }
+.scope-badge[data-scope="national"] { color: #c8b7ff; border-color: rgba(200,183,255,.42); }
+.framing-badge[data-slant="left"] { color: #9bc5ff; border-color: rgba(155,197,255,.45); }
+.framing-badge[data-slant="right"] { color: #ffb59d; border-color: rgba(255,181,157,.45); }
+.framing-badge[data-slant="center"] { color: #8fd4df; border-color: rgba(143,212,223,.42); }
+.framing-badge[data-slant="mixed"], .framing-badge[data-slant="unclear"] { color: #e6cf9d; border-color: rgba(230,207,157,.42); }
+.framing-badge[data-slant="not_political"] { color: var(--muted); }
+.framing-analysis { border-left-color: #c8b7ff; background: rgba(200,183,255,.055); }
