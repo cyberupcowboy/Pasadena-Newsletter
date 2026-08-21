@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Civic Watch from The Pasadena Current — Anne Arundel County government, zoning, AACPS and public decisions affecting Pasadena." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Civic Watch — The Pasadena Current</title>
+  <link rel="stylesheet" href="../section-page.css" />
+</head>
+<body>
+  <header class="page-header"><div class="page-wrap page-header-inner"><a class="page-brand" href="../">The Pasadena Current</a><nav><a href="../">Home</a><a href="../events/">Events</a><a href="../search/">Search</a><a href="../submit/">Submit</a></nav></div></header>
+  <main class="page-wrap">
+    <section class="page-hero"><p class="eyebrow">Government watchdog</p><h1>Civic Watch</h1><p>County Council, planning and zoning, development, AACPS and public decisions translated into plain English—with direct links back to official agendas, documents and original reporting.</p></section>
+
+    <section class="section-block">
+      <div class="section-heading"><div><p class="eyebrow">Official desks</p><h2>Go straight to the record</h2></div><p>Primary sources first.</p></div>
+      <div class="card-grid">
+        <a class="info-card" href="https://www.aacounty.org/county-council/meetings" target="_blank" rel="noopener noreferrer"><div class="meta">County Council</div><h3>Meetings, agendas & testimony</h3><p>Meeting calendar, participation instructions, archives and videos.</p></a>
+        <a class="info-card" href="https://www.aacounty.org/planning-and-zoning/development" target="_blank" rel="noopener noreferrer"><div class="meta">Development</div><h3>Planning & development activity</h3><p>Subdivision/site-plan process, community meetings, development activity and review resources.</p></a>
+        <a class="info-card" href="https://www.aacounty.org/planning-and-zoning/zoning-administration" target="_blank" rel="noopener noreferrer"><div class="meta">Zoning</div><h3>Zoning administration</h3><p>Land Use Navigator, zoning changes, variances, special exceptions and official maps.</p></a>
+        <a class="info-card" href="https://www.aacounty.org/planning-and-zoning/countywide-planning/comprehensive-zoning" target="_blank" rel="noopener noreferrer"><div class="meta">Region 4</div><h3>Pasadena comprehensive zoning</h3><p>Region 4 includes Pasadena, Gibson Island, Severna Park, Arnold, Cape St. Claire and Broadneck.</p></a>
+        <a class="info-card" href="https://www.aacps.org/" target="_blank" rel="noopener noreferrer"><div class="meta">AACPS</div><h3>Board & school system</h3><p>Board news, meeting notices, policies, calendars and system announcements.</p></a>
+        <a class="info-card" href="../search/?q=county+council+planning+zoning+aacps"><div class="meta">Current archive</div><h3>Search past coverage</h3><p>Find related Current briefs, Community Voices and events in the local archive.</p></a>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading"><div><p class="eyebrow">What it means for Pasadena</p><h2>Recent civic coverage</h2></div><p>Human-approved Current briefs.</p></div>
+      <div id="civicStories" class="list-stack"></div>
+      <div id="civicStoryState" class="page-state">Loading civic coverage…</div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading"><div><p class="eyebrow">Public calendar</p><h2>Meetings & hearings</h2></div><a href="../events/">Full events calendar →</a></div>
+      <div id="civicEvents" class="list-stack"></div>
+      <div id="civicEventState" class="page-state">Checking upcoming public meetings…</div>
+    </section>
+
+    <section class="notice-box"><strong>Watchdog principle:</strong> official press releases and government statements are sources, not the final word. When the Current summarizes a public decision, the story brief shows how it was sourced and provides a reader-error channel for corrections or missing context.</section>
+  </main>
+  <footer class="page-footer"><div class="page-wrap"><a href="../">← Back to The Pasadena Current</a><span>Pasadena is part of Anne Arundel County Region 4 planning.</span></div></footer>
+  <script type="module" src="./civic.js"></script>
+</body>
+</html>
