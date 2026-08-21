@@ -7,6 +7,7 @@
   <title>The Pasadena Current — Editorial Desk</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./community.css" />
+  <link rel="stylesheet" href="./community-workflow.css" />
   <link rel="stylesheet" href="./state-national.css" />
 </head>
 <body>
@@ -84,11 +85,29 @@
           <div>
             <p class="eyebrow">Community Voices</p>
             <h2>Resident submissions</h2>
-            <p class="subhead">Compare the untouched submission with the AI copy-desk pass. Nothing here publishes without your approval.</p>
+            <p class="subhead">Work the Inbox first, set stories aside intentionally, and keep approved and rejected submissions in clean archives.</p>
           </div>
-          <span class="community-count"><strong id="communityCount">0</strong> waiting / recent</span>
+          <span class="community-count"><strong id="communityCount">0</strong> in Inbox</span>
         </div>
+
+        <div class="community-workflow-panel" aria-label="Community submission workflow">
+          <div class="community-workflow-tabs" role="tablist" aria-label="Submission workflow sections">
+            <button class="community-workflow-tab" type="button" role="tab" data-community-workflow-filter="action"><span>Inbox</span><span class="workflow-tab-count" data-workflow-count>0</span></button>
+            <button class="community-workflow-tab" type="button" role="tab" data-community-workflow-filter="waiting"><span>Waiting on AI</span><span class="workflow-tab-count" data-workflow-count>0</span></button>
+            <button class="community-workflow-tab" type="button" role="tab" data-community-workflow-filter="later"><span>Saved for later</span><span class="workflow-tab-count" data-workflow-count>0</span></button>
+            <button class="community-workflow-tab" type="button" role="tab" data-community-workflow-filter="approved"><span>Approved</span><span class="workflow-tab-count" data-workflow-count>0</span></button>
+            <button class="community-workflow-tab" type="button" role="tab" data-community-workflow-filter="rejected"><span>Rejected</span><span class="workflow-tab-count" data-workflow-count>0</span></button>
+            <button class="community-workflow-tab" type="button" role="tab" data-community-workflow-filter="all"><span>All</span><span class="workflow-tab-count" data-workflow-count>0</span></button>
+          </div>
+          <div class="community-workflow-tools">
+            <label class="community-workflow-search"><span>Search submissions</span><input id="communityWorkflowSearch" type="search" placeholder="Title, resident, email, story text…" /></label>
+            <button id="communityWorkflowRefresh" class="button ghost" type="button">Refresh submissions</button>
+          </div>
+          <p id="communityWorkflowHint" class="community-workflow-hint">AI-reviewed submissions waiting for your editorial decision.</p>
+        </div>
+
         <section id="communityNotice" class="notice hidden" aria-live="polite"></section>
+        <section id="communityWorkflowEmpty" class="community-workflow-empty hidden" aria-live="polite"></section>
         <div id="communityList" class="community-list"></div>
       </section>
     </section>
@@ -146,5 +165,6 @@
   <script type="module" src="./app.js"></script>
   <script type="module" src="./community.js"></script>
   <script type="module" src="./community-approval-ux.js"></script>
+  <script type="module" src="./community-workflow.js"></script>
 </body>
 </html>
