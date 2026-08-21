@@ -21,6 +21,7 @@ const els = {
   approvedCount: document.querySelector('#approvedCount'),
   rejectedCount: document.querySelector('#rejectedCount'),
   statusFilter: document.querySelector('#statusFilter'),
+  scopeFilter: document.querySelector('#scopeFilter'),
   categoryFilter: document.querySelector('#categoryFilter'),
   searchInput: document.querySelector('#searchInput'),
   refreshButton: document.querySelector('#refreshButton'),
@@ -48,6 +49,15 @@ function setNotice(message = '', kind = 'info') {
 }
 function statusLabel(status) {
   return ({ new: 'New', review: 'Needs review', approved: 'Approved', rejected: 'Rejected', published: 'Published', archived: 'Archived' })[status] || status || 'Unknown';
+}
+function scopeLabel(scope) {
+  return ({ local: 'Local', state: 'Maryland', national: 'National' })[scope] || 'Local';
+}
+function framingLabel(story) {
+  if (!story.political_content || story.political_slant === 'not_political') return 'Nonpolitical';
+  const label = ({ left: 'Left-leaning', center: 'Center / straight', right: 'Right-leaning', mixed: 'Mixed framing', unclear: 'Unclear framing' })[story.political_slant] || 'Unclear framing';
+  const confidence = Number(story.political_slant_confidence);
+  return Number.isFinite(confidence) ? `${label} · ${confidence}%` : label;
 }
 function formatDate(value) {
   if (!value) return 'Unknown time';
@@ -87,13 +97,15 @@ function updateCategoryFilter() {
 
 function getFilteredStories() {
   const status = els.statusFilter.value;
+  const scope = els.scopeFilter.value;
   const category = els.categoryFilter.value;
   const search = els.searchInput.value.trim().toLowerCase();
   return stories.filter((story) => {
     const statusMatches = status === 'all' || (status === 'active' && ['review', 'new'].includes(story.editorial_status)) || story.editorial_status === status;
+    const scopeMatches = scope === 'all' || (story.content_scope || 'local') === scope;
     const categoryMatches = category === 'all' || story.category === category;
-    const haystack = [story.ai_headline, story.ai_summary, story.source_title, story.location_text, story.relevance_reason, story.category].filter(Boolean).join(' ').toLowerCase();
-    return statusMatches && categoryMatches && (!search || haystack.includes(search));
+    const haystack = [story.ai_headline, story.ai_summary, story.source_title, story.location_text, story.relevance_reason, story.category, story.content_scope, story.political_slant, story.political_slant_reason].filter(Boolean).join(' ').toLowerCase();
+    return statusMatches && scopeMatches && categoryMatches && (!search || haystack.includes(search));
   });
 }
 
@@ -125,12 +137,39 @@ async function saveStory(storyId, card, editorialStatus = null) {
   await loadStories({ quiet: true });
 }
 
+function appendAnalysis(card, story) {
+  const badgeRow = card.querySelector('.badge-row');
+  const scope = document.createElement('span');
+  scope.className = 'badge scope-badge';
+  scope.textContent = scopeLabel(story.content_scope || 'local');
+  scope.dataset.scope = story.content_scope || 'local';
+  badgeRow.append(scope);
+
+  if ((story.content_scope || 'local') !== 'local') {
+    const framing = document.createElement('span');
+    framing.className = 'badge framing-badge';
+    framing.textContent = framingLabel(story);
+    framing.dataset.slant = story.political_slant || 'unclear';
+    badgeRow.append(framing);
+
+    const box = document.createElement('div');
+    box.className = 'reason-box framing-analysis';
+    const label = document.createElement('span');
+    label.textContent = 'AI political framing analysis';
+    const reason = document.createElement('p');
+    reason.textContent = story.political_slant_reason || 'No framing rationale captured.';
+    box.append(label, reason);
+    card.querySelector('.reason-box').after(box);
+  }
+}
+
 function renderStory(story) {
   const card = els.storyCardTemplate.content.firstElementChild.cloneNode(true);
   card.dataset.storyId = story.id;
   card.querySelector('.category-badge').textContent = categoryLabel(story.category);
   const statusBadge = card.querySelector('.status-badge');
   statusBadge.textContent = statusLabel(story.editorial_status); statusBadge.dataset.status = story.editorial_status || 'unknown';
+  appendAnalysis(card, story);
   card.querySelector('.source-link').href = story.source_url;
   card.querySelector('.source-title').textContent = story.source_title || 'Source item';
   card.querySelector('.display-headline').textContent = story.ai_headline || story.source_title || 'Untitled';
@@ -166,8 +205,9 @@ function renderStories() {
 async function loadStories({ quiet = false } = {}) {
   if (!quiet) setNotice('Loading editorial queue…');
   const { data, error } = await supabase.from('stories').select([
-    'id','source_url','source_title','ai_headline','ai_summary','category','pasadena_relevance','urgency','location_text','editorial_status','review_notes','ai_model','ai_processed_at','relevance_reason','reviewed_at','last_edited_at'
-  ].join(',')).order('pasadena_relevance', { ascending: false, nullsFirst: false }).order('urgency', { ascending: false, nullsFirst: false }).limit(200);
+    'id','source_url','source_title','ai_headline','ai_summary','category','pasadena_relevance','urgency','location_text','editorial_status','review_notes','ai_model','ai_processed_at','relevance_reason','reviewed_at','last_edited_at',
+    'content_scope','political_content','political_slant','political_slant_confidence','political_slant_reason'
+  ].join(',')).order('ingested_at', { ascending: false }).limit(250);
   if (error) {
     stories = []; setNotice(`Could not load the queue: ${error.message}`, 'error'); updateStats(); renderStories(); return;
   }
@@ -182,12 +222,13 @@ function buildNewsletterDraft(items) {
   const date = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
   const sections = new Map();
   for (const story of items) {
-    const key = categoryLabel(story.category);
+    const scope = scopeLabel(story.content_scope || 'local');
+    const key = `${scope} — ${categoryLabel(story.category)}`;
     if (!sections.has(key)) sections.set(key, []);
     sections.get(key).push(story);
   }
   const body = [...sections.entries()].map(([category, categoryStories]) => {
-    const storiesText = categoryStories.map((story) => `${story.ai_headline || story.source_title}\n${story.ai_summary || ''}\nSource: ${story.source_url}`).join('\n\n');
+    const storiesText = categoryStories.map((story) => `${story.ai_headline || story.source_title}\n${story.ai_summary || ''}\n${(story.content_scope || 'local') === 'local' ? '' : `Framing: ${framingLabel(story)}\n`}Source: ${story.source_url}`).join('\n\n');
     return `${category.toUpperCase()}\n${storiesText}`;
   }).join('\n\n---\n\n');
   return `THE PASADENA CURRENT\n${date}\nNews from the roads, neighborhoods, docks and water around Pasadena.\n\n${body}\n\n— The Pasadena Current\nLocal news, community life and what matters around 21122.`;
@@ -248,6 +289,7 @@ els.closeEditionButton.addEventListener('click', () => setHidden(els.editionPane
 els.copyNewsletterButton.addEventListener('click', () => copyDraft(els.newsletterDraft, 'Newsletter draft'));
 els.copyFacebookButton.addEventListener('click', () => copyDraft(els.facebookDraft, 'Facebook draft'));
 els.statusFilter.addEventListener('change', renderStories);
+els.scopeFilter.addEventListener('change', renderStories);
 els.categoryFilter.addEventListener('change', renderStories);
 els.searchInput.addEventListener('input', renderStories);
 supabase.auth.onAuthStateChange((_event, session) => { if (session?.access_token !== currentSession?.access_token) renderSession(session); });
