@@ -1,4 +1,12 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/+esm';
+import './newsroom-ops.js';
+
+if (!document.querySelector('link[href="./newsroom-ops.css"]')) {
+  const stylesheet = document.createElement('link');
+  stylesheet.rel = 'stylesheet';
+  stylesheet.href = './newsroom-ops.css';
+  document.head.append(stylesheet);
+}
 
 const SUPABASE_URL = 'https://eedpedkvymohcubdaoey.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_6RReetP9MPYS_xn0k6xzrw_AVBbgBRs';
@@ -70,7 +78,6 @@ function reviewIsCurrent(row) {
 async function pollQueuedReviews() {
   const cards = queuedCards();
   cards.forEach(clarifyQueuedCard);
-
   if (!cards.length) return;
 
   const ids = cards.map((card) => card.dataset.submissionId).filter(Boolean);
@@ -78,18 +85,12 @@ async function pollQueuedReviews() {
     .from('community_submissions')
     .select('id,ai_processed_at,ai_reprocess_requested_at,ai_review_version,ai_editorial_recommendation')
     .in('id', ids);
-
   if (error || !data) return;
 
   const currentIds = new Set(data.filter(reviewIsCurrent).map((row) => row.id));
   if (!currentIds.size) return;
-
   const completedCards = cards.filter((card) => currentIds.has(card.dataset.submissionId));
-  if (!editorDirty) {
-    location.reload();
-    return;
-  }
-
+  if (!editorDirty) { location.reload(); return; }
   completedCards.forEach(addRefreshPrompt);
 }
 
@@ -99,14 +100,11 @@ function schedulePoll() {
   pollQueuedReviews();
 }
 
-const observer = new MutationObserver(() => {
-  queuedCards().forEach(clarifyQueuedCard);
-});
+const observer = new MutationObserver(() => { queuedCards().forEach(clarifyQueuedCard); });
 observer.observe(document.body, { childList: true, subtree: true });
 
 const { data: sessionData } = await supabase.auth.getSession();
 if (sessionData.session?.user) schedulePoll();
-
 supabase.auth.onAuthStateChange((_event, session) => {
   if (session?.user) schedulePoll();
   else clearInterval(pollTimer);
