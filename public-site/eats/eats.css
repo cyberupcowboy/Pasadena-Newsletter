@@ -1,0 +1,28 @@
+.eats-hero { background: linear-gradient(135deg, #f8f5ec 0%, #f0e6d2 100%); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.action-button.secondary { background: transparent; color: var(--navy); border: 1px solid var(--navy); }
+.eats-method { margin: 0 0 20px; padding: 18px 20px; border-left: 5px solid var(--rust); background: #fffaf0; }
+.eats-method strong { font: 700 1.05rem Georgia, serif; }
+.eats-method p { margin: 7px 0 0; color: var(--muted); line-height: 1.6; font-size: .82rem; }
+.eats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0 42px; }
+.eats-card { display: grid; gap: 12px; padding: 20px; border: 1px solid var(--line); background: var(--paper); position: relative; overflow: hidden; }
+.eats-card::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--bay); }
+.eats-card[data-kind="hot"]::before { background: var(--rust); }
+.eats-topline { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.eats-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.eats-badge { display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 999px; background: #e4eee9; color: var(--navy); font-size: .63rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.eats-badge.hot { background: #f4dfd4; color: #7b3826; }
+.eats-price { color: var(--muted); font-size: .75rem; font-weight: 900; }
+.eats-card h3 { margin: 0; font: 700 1.55rem/1.12 Georgia, serif; }
+.eats-cuisine { margin: -5px 0 0; color: var(--rust); font-size: .72rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.eats-blurb { margin: 0; color: var(--ink); line-height: 1.58; font-size: .88rem; }
+.eats-details { display: grid; gap: 7px; padding-top: 11px; border-top: 1px solid var(--line); color: var(--muted); font-size: .76rem; line-height: 1.45; }
+.eats-details strong { color: var(--ink); }
+.eats-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: .75rem; font-weight: 900; color: var(--bay); }
+.eats-links a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.nominate-box { display: flex; justify-content: space-between; gap: 28px; align-items: center; margin: 32px 0 52px; padding: 24px; border: 1px solid var(--line); background: var(--navy); color: var(--paper); }
+.nominate-box .eyebrow { color: #dca98d; }
+.nominate-box h2 { margin: 0 0 7px; font: 700 1.55rem Georgia, serif; }
+.nominate-box p { max-width: 700px; margin: 0; color: #d5dedf; line-height: 1.55; font-size: .82rem; }
+.nominate-box .action-button { flex: 0 0 auto; background: var(--rust); }
+@media (max-width: 760px) { .eats-grid { grid-template-columns: 1fr; } .nominate-box { align-items: flex-start; flex-direction: column; } }
