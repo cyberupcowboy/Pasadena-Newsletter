@@ -1,4 +1,5 @@
 import { supabase } from './lib/current.js';
+import './local-eats-home.js';
 
 let storiesBySource = new Map();
 let observer = null;
