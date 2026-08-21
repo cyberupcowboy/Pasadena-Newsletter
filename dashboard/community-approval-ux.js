@@ -1,5 +1,6 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/+esm';
 import './newsroom-ops.js';
+import './local-eats-admin.js';
 
 if (!document.querySelector('link[href="./newsroom-ops.css"]')) {
   const stylesheet = document.createElement('link');
