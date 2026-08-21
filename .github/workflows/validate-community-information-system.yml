@@ -1,0 +1,41 @@
+name: Validate Community Information System
+
+on:
+  push:
+    branches:
+      - feature/community-information-system
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate browser and worker scripts
+        run: |
+          node --check public-site/app.js
+          node --check public-site/community-system.js
+          node --check public-site/story-links.js
+          node --check public-site/lib/current.js
+          node --check public-site/story/story.js
+          node --check public-site/story/comment-reports.js
+          node --check public-site/events/events.js
+          node --check public-site/directory/directory.js
+          node --check public-site/civic/civic.js
+          node --check public-site/neighborhoods/neighborhoods.js
+          node --check public-site/search/search.js
+          node --check public-site/alerts/alerts.js
+          node --check dashboard/app.js
+          node --check dashboard/community.js
+          node --check dashboard/community-approval-ux.js
+          node --check dashboard/community-workflow.js
+          node --check dashboard/newsroom-ops.js
+          node --check scripts/moderate-community-comments.mjs
+          node --check scripts/generate-newsletter-editions.mjs
