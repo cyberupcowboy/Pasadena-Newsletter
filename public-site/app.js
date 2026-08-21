@@ -38,6 +38,19 @@ let nationalStories = [];
 let activeCategory = 'all';
 let featuredStoryId = null;
 
+const PUBLISHER_NAMES = {
+  'marylandmatters.org': 'Maryland Matters',
+  'wbaltv.com': 'WBAL-TV 11',
+  'foxbaltimore.com': 'FOX45 Baltimore',
+  'wtop.com': 'WTOP News',
+  'apnews.com': 'Associated Press',
+  'reuters.com': 'Reuters',
+  'npr.org': 'NPR',
+  'foxnews.com': 'Fox News',
+  'cnn.com': 'CNN',
+  'thehill.com': 'The Hill',
+};
+
 function setHidden(element, hidden) {
   element.classList.toggle('hidden', hidden);
 }
@@ -70,6 +83,14 @@ function relevanceLabel(score) {
   return 'Regional';
 }
 
+function framingConfidence(value) {
+  const confidence = Number(value);
+  if (!Number.isFinite(confidence)) return null;
+  if (confidence >= 80) return 'high confidence';
+  if (confidence >= 55) return 'medium confidence';
+  return 'low confidence';
+}
+
 function framingLabel(story) {
   if (!story.political_content || story.political_slant === 'not_political') return 'Nonpolitical';
   const label = ({
@@ -79,16 +100,21 @@ function framingLabel(story) {
     mixed: 'Mixed framing',
     unclear: 'Unclear framing',
   })[story.political_slant] || 'Unclear framing';
-  const confidence = Number(story.political_slant_confidence);
-  return Number.isFinite(confidence) ? `${label} · ${confidence}%` : label;
+  const confidence = framingConfidence(story.political_slant_confidence);
+  return confidence ? `${label} · ${confidence}` : label;
 }
 
 function sourceKey(story) {
   try {
     return new URL(story.source_url).hostname.replace(/^www\./, '').toLowerCase();
   } catch {
-    return story.source_title || 'unknown-source';
+    return 'unknown-source';
   }
+}
+
+function publisherLabel(story) {
+  const host = sourceKey(story);
+  return PUBLISHER_NAMES[host] || host || 'Original source';
 }
 
 function isRoutinePoliceStory(story) {
@@ -112,6 +138,19 @@ function diversifyStories(items) {
     if (police) routinePolice += 1;
   }
 
+  return selected;
+}
+
+function diversifyDesk(items, limit = 6) {
+  const selected = [];
+  const sourceCounts = new Map();
+  for (const story of sortDesk(items)) {
+    const source = sourceKey(story);
+    if ((sourceCounts.get(source) || 0) >= 2) continue;
+    selected.push(story);
+    sourceCounts.set(source, (sourceCounts.get(source) || 0) + 1);
+    if (selected.length >= limit) break;
+  }
   return selected;
 }
 
@@ -224,7 +263,7 @@ function renderDeskStory(story) {
   top.className = 'desk-story-topline';
   const source = document.createElement('span');
   source.className = 'desk-source';
-  source.textContent = story.source_title || sourceKey(story);
+  source.textContent = publisherLabel(story);
   const framing = document.createElement('span');
   framing.className = `framing-badge framing-${story.political_slant || 'unclear'}`;
   framing.textContent = framingLabel(story);
@@ -259,7 +298,7 @@ function sortDesk(items) {
 
 function renderNewsDesk(items, grid, section) {
   grid.replaceChildren();
-  const selected = sortDesk(items).slice(0, 6);
+  const selected = diversifyDesk(items, 6);
   if (!selected.length) {
     setHidden(section, true);
     return;
