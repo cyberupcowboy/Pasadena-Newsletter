@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="The Pasadena Current — human-reviewed local news, road conditions, events and community updates for Pasadena, Maryland." />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <meta name="description" content="The Pasadena Current — local news, weather, traffic, events, schools, community voices and civic information for Pasadena, Maryland." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co https://api.weather.gov https://api.tidesandcurrents.noaa.gov; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
   <title>The Pasadena Current</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./community.css" />
   <link rel="stylesheet" href="./beyond.css" />
+  <link rel="stylesheet" href="./community-system.css" />
 </head>
 <body>
   <header class="site-header">
@@ -25,17 +26,85 @@
     </div>
   </header>
 
+  <nav class="primary-nav" aria-label="Primary navigation">
+    <div class="wrap">
+      <a href="./">Home</a>
+      <a href="#today">Today</a>
+      <a href="#storySection">Local news</a>
+      <a href="./events/">Events</a>
+      <a href="./civic/">Civic Watch</a>
+      <a href="./directory/">Directory</a>
+      <a href="./neighborhoods/">Neighborhoods</a>
+      <a href="./search/">Search / Ask Pasadena</a>
+      <a href="./alerts/">Alerts</a>
+      <a class="nav-submit" href="./submit/">Submit →</a>
+    </div>
+  </nav>
+
   <main class="wrap">
     <section class="intro-strip">
       <p>A local-first briefing for Pasadena and the nearby Anne Arundel communities that affect life here—from Mountain Road to the Magothy and out toward the Bay.</p>
       <span id="storyCount" class="story-count">Checking the current…</span>
     </section>
 
+    <section id="today" class="now-section" aria-labelledby="rightNowHeading">
+      <div class="now-heading">
+        <div>
+          <p class="section-label">Right now in Pasadena</p>
+          <h2 id="rightNowHeading">The useful stuff first</h2>
+        </div>
+        <span id="nowUpdated" class="now-updated">Updating live conditions…</span>
+      </div>
+      <div class="now-grid">
+        <article id="weatherNow" class="now-card"><span class="now-label">Weather</span><strong class="now-value">Checking forecast…</strong></article>
+        <article id="weatherAlerts" class="now-card"><span class="now-label">Alerts</span><strong class="now-value">Checking NWS…</strong></article>
+        <article id="trafficNow" class="now-card"><span class="now-label">Traffic</span><strong class="now-value">Checking roads…</strong></article>
+        <article id="schoolNow" class="now-card"><span class="now-label">AACPS</span><strong class="now-value">Checking school status…</strong></article>
+        <article id="tideNow" class="now-card"><span class="now-label">Tides</span><strong class="now-value">Checking NOAA…</strong></article>
+        <article id="bayNow" class="now-card"><span class="now-label">On the Bay</span><strong class="now-value">Checking marine forecast…</strong></article>
+      </div>
+    </section>
+
+    <div class="community-dashboard-row">
+      <section class="happening-section" aria-labelledby="happeningHeading">
+        <div class="module-heading">
+          <div>
+            <p class="section-label">Happening today</p>
+            <h2 id="happeningHeading">What needs your attention</h2>
+          </div>
+          <a class="module-link" href="./events/">Full calendar →</a>
+        </div>
+        <div id="happeningTodayList" class="happening-list"></div>
+      </section>
+
+      <section class="talking-section" aria-labelledby="talkingHeading">
+        <div class="module-heading">
+          <div>
+            <p class="section-label">What Pasadena is talking about</p>
+            <h2 id="talkingHeading">Signals around 21122</h2>
+          </div>
+        </div>
+        <div id="talkingList" class="talking-list"></div>
+      </section>
+    </div>
+
+    <div class="section-jump" aria-label="Local coverage sections">
+      <a href="#storySection">Latest local</a>
+      <a href="./search/?q=schools">Schools</a>
+      <a href="./search/?q=public+safety">Police & fire</a>
+      <a href="./civic/">Government</a>
+      <a href="./directory/">Business</a>
+      <a href="./search/?q=water+boating">Water & boating</a>
+      <a href="./events/">Events</a>
+      <a href="#voicesSection">Community Voices</a>
+      <a href="#beyondSection">Maryland & national</a>
+    </div>
+
     <section class="community-callout">
       <div>
         <p class="section-label">Community Voices</p>
         <h2>See something Pasadena should know?</h2>
-        <p>Report a neighborhood story, share community commentary, send an event or tip the editor. Resident submissions are edited for clarity and always reviewed by a human before publication.</p>
+        <p>Submit a story, event, tip, photo or community opinion. AI helps clean up the copy and flag claims or harmful language, but a human editor decides what gets published and your viewpoint is preserved.</p>
       </div>
       <a class="community-submit-link" href="./submit/">Send something to the Current →</a>
     </section>
@@ -72,34 +141,6 @@
       </section>
     </section>
 
-    <section id="beyondSection" class="beyond-section hidden">
-      <div class="section-heading beyond-heading">
-        <div>
-          <p class="section-label">Beyond 21122</p>
-          <h2>Maryland & national</h2>
-        </div>
-        <p class="framing-explainer">AI framing estimates describe how each specific article is presented. They are not ratings of factual accuracy or permanent labels on the publisher.</p>
-      </div>
-      <div class="desk-columns">
-        <section id="stateNewsSection" class="news-desk hidden">
-          <div class="desk-heading">
-            <p class="section-label">State desk</p>
-            <h3>Maryland</h3>
-          </div>
-          <div id="stateNewsGrid" class="desk-story-list"></div>
-        </section>
-        <section id="nationalNewsSection" class="news-desk hidden">
-          <div class="desk-heading">
-            <p class="section-label">National desk</p>
-            <h3>United States</h3>
-          </div>
-          <div id="nationalNewsGrid" class="desk-story-list"></div>
-        </section>
-      </div>
-    </section>
-
-    <section id="emptyState" class="state-card hidden">Nothing has cleared the editor’s desk yet. Check back soon.</section>
-
     <section id="voicesSection" class="voices-section hidden">
       <div class="section-heading compact-heading">
         <div>
@@ -117,32 +158,79 @@
           <p class="section-label">Around town</p>
           <h2>Coming up in Pasadena</h2>
         </div>
-        <p class="source-note">Official local listings</p>
+        <a class="source-note community-inline-link" href="./events/">Open full calendar →</a>
       </div>
       <div id="eventGrid" class="event-grid"></div>
+    </section>
+
+    <section id="beyondSection" class="beyond-section hidden">
+      <div class="section-heading beyond-heading">
+        <div>
+          <p class="section-label">Beyond 21122</p>
+          <h2>Maryland & national</h2>
+        </div>
+        <p class="framing-explainer">AI framing estimates describe how each specific article is presented. They are not ratings of factual accuracy or permanent labels on the publisher. Open a Current brief to see why the framing was rated that way.</p>
+      </div>
+      <div class="desk-columns">
+        <section id="stateNewsSection" class="news-desk hidden">
+          <div class="desk-heading"><p class="section-label">State desk</p><h3>Maryland</h3></div>
+          <div id="stateNewsGrid" class="desk-story-list"></div>
+        </section>
+        <section id="nationalNewsSection" class="news-desk hidden">
+          <div class="desk-heading"><p class="section-label">National desk</p><h3>United States</h3></div>
+          <div id="nationalNewsGrid" class="desk-story-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="emptyState" class="state-card hidden">Nothing has cleared the editor’s desk yet. Check back soon.</section>
+
+    <section class="explore-section">
+      <p class="section-label">Use the Current</p>
+      <h2>More than an article feed</h2>
+      <div class="explore-grid">
+        <a class="explore-card" href="./events/"><span>Calendar</span><h3>Local events</h3><p>School events, library programs, meetings, fundraisers, live music and community submissions.</p></a>
+        <a class="explore-card" href="./civic/"><span>Watchdog</span><h3>Civic Watch</h3><p>County government, planning and zoning, AACPS, public meetings and what decisions mean for Pasadena.</p></a>
+        <a class="explore-card" href="./directory/"><span>Local economy</span><h3>Business directory</h3><p>Find Pasadena businesses, services, specials and verified listings without an ad-wall experience.</p></a>
+        <a class="explore-card" href="./neighborhoods/"><span>Near you</span><h3>Neighborhood pages</h3><p>Follow Pasadena, Lake Shore, Riviera Beach, Green Haven, Jacobsville and nearby communities.</p></a>
+        <a class="explore-card" href="./search/"><span>Archive</span><h3>Search / Ask Pasadena</h3><p>Search local reporting, Community Voices, events and directory listings in one place.</p></a>
+        <a class="explore-card" href="./alerts/"><span>Stay informed</span><h3>Alerts & newsletters</h3><p>Choose the topics and neighborhoods you care about instead of subscribing to everything.</p></a>
+      </div>
+    </section>
+
+    <section class="alerts-callout">
+      <div>
+        <p class="section-label">Pasadena Morning Brief</p>
+        <h2>Start the day knowing what changed.</h2>
+        <p>Local headlines, weather, traffic, schools, public safety, government and what’s happening tonight.</p>
+        <a class="alerts-options-link" href="./alerts/">Choose detailed alert preferences →</a>
+      </div>
+      <form id="quickAlertForm" class="quick-alert-form">
+        <input id="quickAlertEmail" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email address" required />
+        <button type="submit">Join the brief</button>
+        <p id="quickAlertMessage" class="alert-form-message" aria-live="polite"></p>
+      </form>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="wrap footer-inner">
       <p><strong>The Pasadena Current</strong> · Local news, community life and what matters around 21122.</p>
-      <p><a class="editor-link" href="./submit/">Community submissions</a> · We summarize and link. Original reporting stays with the original source. <a class="editor-link" href="./editorial/">Editor login</a></p>
+      <p><a class="editor-link" href="./submit/">Community submissions</a> · <a class="editor-link" href="./search/">Search</a> · <a class="editor-link" href="./alerts/">Alerts</a> · We summarize and link. Original reporting stays with the original source. <a class="editor-link" href="./editorial/">Editor login</a></p>
     </div>
   </footer>
 
   <template id="storyTemplate">
     <article class="story-card">
-      <div class="card-topline">
-        <span class="category"></span>
-        <span class="local-score"></span>
-      </div>
+      <div class="card-topline"><span class="category"></span><span class="local-score"></span></div>
       <h3></h3>
       <p class="summary"></p>
       <div class="story-meta"></div>
-      <a class="read-source" target="_blank" rel="noopener noreferrer">Read the source →</a>
+      <a class="read-source">Open Current brief →</a>
     </article>
   </template>
 
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./community-system.js"></script>
 </body>
 </html>
