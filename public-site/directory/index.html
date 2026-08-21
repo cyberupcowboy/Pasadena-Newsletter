@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Pasadena, Maryland local business directory from The Pasadena Current." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Pasadena Business Directory — The Pasadena Current</title>
+  <link rel="stylesheet" href="../section-page.css" />
+</head>
+<body>
+  <header class="page-header"><div class="page-wrap page-header-inner"><a class="page-brand" href="../">The Pasadena Current</a><nav><a href="../">Home</a><a href="../events/">Events</a><a href="../civic/">Civic Watch</a><a href="../submit/">Submit</a></nav></div></header>
+  <main class="page-wrap">
+    <section class="page-hero"><p class="eyebrow">Local economy</p><h1>Pasadena business directory</h1><p>A useful directory for local restaurants, marinas, contractors, mechanics, shops and services. Listings are separate from editorial coverage; sponsorship never changes news ranking or political-framing analysis.</p></section>
+    <div class="page-toolbar">
+      <input id="businessSearch" type="search" placeholder="Search businesses or services" aria-label="Search businesses" />
+      <select id="businessCategory"><option value="all">All categories</option></select>
+      <a class="action-button" href="../submit/?type=business">Submit a business</a>
+    </div>
+    <section id="businessState" class="page-state">Loading the directory…</section>
+    <section id="businessGrid" class="card-grid hidden"></section>
+    <section class="notice-box"><strong>Business owners:</strong> submit a listing through Community Voices. Approved business submissions flow into the directory. A verified-owner program, hours, photos and specials are supported by the directory model and can be expanded as listings grow.</section>
+  </main>
+  <footer class="page-footer"><div class="page-wrap"><a href="../">← Back to The Pasadena Current</a><span>Directory listings are informational; sponsored listings are labeled separately.</span></div></footer>
+  <script type="module" src="./directory.js"></script>
+</body>
+</html>
