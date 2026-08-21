@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Neighborhood news and community updates around Pasadena, Maryland." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Neighborhoods — The Pasadena Current</title>
+  <link rel="stylesheet" href="../section-page.css" />
+</head>
+<body>
+  <header class="page-header"><div class="page-wrap page-header-inner"><a class="page-brand" href="../">The Pasadena Current</a><nav><a href="../">Home</a><a href="../events/">Events</a><a href="../search/">Search</a><a href="../alerts/">Alerts</a></nav></div></header>
+  <main class="page-wrap">
+    <section class="page-hero"><p class="eyebrow">Near you</p><h1 id="neighborhoodTitle">Neighborhoods</h1><p id="neighborhoodDescription">Follow the part of Pasadena you actually live in—not just the ZIP code as a whole.</p></section>
+    <div id="neighborhoodPicker" class="page-toolbar"></div>
+    <section class="section-block"><div class="section-heading"><div><p class="eyebrow">Latest nearby</p><h2>News & Community Voices</h2></div><a href="../submit/">Send an update →</a></div><div id="neighborhoodFeed" class="list-stack"></div><div id="neighborhoodState" class="page-state">Loading neighborhood coverage…</div></section>
+  </main>
+  <footer class="page-footer"><div class="page-wrap"><a href="../">← Back to The Pasadena Current</a><span>Neighborhood matching improves as the archive grows.</span></div></footer>
+  <script type="module" src="./neighborhoods.js"></script>
+</body>
+</html>
