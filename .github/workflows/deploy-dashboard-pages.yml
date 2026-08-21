@@ -35,11 +35,23 @@ jobs:
       - name: Validate browser scripts
         run: |
           node --check public-site/app.js
+          node --check public-site/community-system.js
+          node --check public-site/story-links.js
+          node --check public-site/lib/current.js
+          node --check public-site/story/story.js
+          node --check public-site/story/comment-reports.js
+          node --check public-site/events/events.js
+          node --check public-site/directory/directory.js
+          node --check public-site/civic/civic.js
+          node --check public-site/neighborhoods/neighborhoods.js
+          node --check public-site/search/search.js
+          node --check public-site/alerts/alerts.js
           node --check public-site/submit/app.js
           node --check dashboard/app.js
           node --check dashboard/community.js
           node --check dashboard/community-approval-ux.js
           node --check dashboard/community-workflow.js
+          node --check dashboard/newsroom-ops.js
 
       - name: Build Pages artifact
         run: |
