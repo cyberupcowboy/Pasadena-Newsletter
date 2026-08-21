@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - feature/community-information-system
+    paths-ignore:
+      - '.qa/**'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   syntax:
@@ -39,3 +41,12 @@ jobs:
           node --check dashboard/newsroom-ops.js
           node --check scripts/moderate-community-comments.mjs
           node --check scripts/generate-newsletter-editions.mjs
+      - name: Record successful QA
+        run: |
+          mkdir -p .qa
+          printf 'validated_commit=%s\nvalidated_at=%s\n' "$GITHUB_SHA" "$(date -u +%FT%TZ)" > .qa/community-information-system-passed.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- .qa/community-information-system-passed.txt
+          git commit -m 'Record community information system QA pass'
+          git push origin HEAD:${GITHUB_REF_NAME}
