@@ -37,11 +37,13 @@ jobs:
           node --check public-site/app.js
           node --check public-site/community-system.js
           node --check public-site/story-links.js
+          node --check public-site/local-eats-home.js
           node --check public-site/lib/current.js
           node --check public-site/story/story.js
           node --check public-site/story/comment-reports.js
           node --check public-site/events/events.js
           node --check public-site/directory/directory.js
+          node --check public-site/eats/eats.js
           node --check public-site/civic/civic.js
           node --check public-site/neighborhoods/neighborhoods.js
           node --check public-site/search/search.js
@@ -53,6 +55,7 @@ jobs:
           node --check dashboard/community-approval-ux.js
           node --check dashboard/community-workflow.js
           node --check dashboard/newsroom-ops.js
+          node --check dashboard/local-eats-admin.js
 
       - name: Build Pages artifact
         run: |
