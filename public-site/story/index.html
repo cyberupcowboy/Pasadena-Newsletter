@@ -10,101 +10,26 @@
   <link rel="stylesheet" href="./story.css" />
 </head>
 <body>
-  <header class="brief-header">
-    <div class="brief-wrap brief-header-inner">
-      <a class="brief-brand" href="../"><span>The</span> Pasadena Current</a>
-      <nav><a href="../search/">Search</a><a href="../events/">Events</a><a href="../submit/">Submit</a></nav>
-    </div>
-  </header>
-
+  <header class="brief-header"><div class="brief-wrap brief-header-inner"><a class="brief-brand" href="../"><span>The</span> Pasadena Current</a><nav><a href="../search/">Search</a><a href="../events/">Events</a><a href="../submit/">Submit</a></nav></div></header>
   <main class="brief-wrap">
-    <section id="storyLoading" class="brief-state">Loading the Current brief…</section>
-    <section id="storyError" class="brief-state brief-error hidden"></section>
-
+    <section id="storyLoading" class="brief-state">Loading the Current brief…</section><section id="storyError" class="brief-state brief-error hidden"></section>
     <article id="storyArticle" class="story-article hidden">
-      <header class="story-hero">
-        <div class="story-kicker-row"><span id="storyCategory" class="story-kicker"></span><span id="storyScope" class="story-scope"></span></div>
-        <h1 id="storyHeadline"></h1>
-        <p id="storySummary" class="story-deck"></p>
-        <div id="storyMeta" class="story-meta-line"></div>
-        <div class="story-links"><a id="originalSource" class="primary-link" target="_blank" rel="noopener noreferrer">Read original reporting →</a><a href="#discussion">Join the discussion ↓</a></div>
-      </header>
-
-      <section id="correctionBox" class="correction-box hidden" aria-label="Correction">
-        <strong id="correctionDate">Correction</strong>
-        <p id="correctionText"></p>
-      </section>
-
-      <section class="trust-grid">
-        <div class="trust-card"><span>Published as</span><strong id="originLabel">Source brief</strong></div>
-        <div class="trust-card"><span>By</span><strong id="bylineLabel">Pasadena Current Desk</strong></div>
-        <div class="trust-card"><span>AI assistance</span><strong id="aiLabel">AI-assisted · human reviewed</strong></div>
-        <div class="trust-card"><span>Original source</span><strong id="publisherLabel">Source</strong></div>
-      </section>
-
-      <section id="framingSection" class="framing-detail hidden">
-        <div class="detail-heading"><div><p class="detail-kicker">Perspective analysis</p><h2 id="framingLabel"></h2></div><span id="framingConfidence" class="confidence-pill"></span></div>
-        <p id="framingReason"></p>
-        <p class="method-note">This describes the framing of this specific article—not whether the claims are true and not a permanent rating of the publisher.</p>
-      </section>
-
-      <details class="explain-box" open>
-        <summary>Explain this story</summary>
-        <div class="explain-grid">
-          <section><h3>30-second summary</h3><p id="explainSummary"></p></section>
-          <section><h3>Why it matters here</h3><p id="whyItMatters"></p></section>
-          <section><h3>Background</h3><p id="backgroundText"></p></section>
-          <section><h3>What to keep in mind</h3><p id="keepInMind"></p></section>
-        </div>
-      </details>
-
-      <details class="reporting-box">
-        <summary>How we reported this</summary>
-        <p id="howReported"></p>
-        <ul id="sourceList"></ul>
-      </details>
-
-      <section id="timelineSection" class="timeline-section hidden">
-        <div class="section-title"><p class="detail-kicker">Related coverage</p><h2>Story timeline</h2></div>
-        <div id="timelineList" class="timeline-list"></div>
-      </section>
-
-      <section class="error-report-section">
-        <div><p class="detail-kicker">Accountability</p><h2>See something wrong?</h2><p>Tell us what needs checking. If we correct the story, the correction stays visible on this page.</p></div>
-        <form id="errorReportForm">
-          <label>Email (optional)<input id="errorEmail" type="email" autocomplete="email" /></label>
-          <label>What should we review?<textarea id="errorMessage" rows="4" required minlength="10" maxlength="4000"></textarea></label>
-          <button type="submit">Report an error</button>
-          <p id="errorReportStatus" class="form-status" aria-live="polite"></p>
-        </form>
-      </section>
-
-      <section id="discussion" class="discussion-section">
-        <div class="discussion-heading"><div><p class="detail-kicker">Community discussion</p><h2>Disagree without becoming enemies.</h2></div><a href="../community-rules/">Community rules →</a></div>
-        <p class="discussion-intro">Political and unpopular opinions are welcome. Threats, doxxing, slurs, targeted harassment and unsupported accusations about private people are not. New comments are screened before they appear publicly.</p>
-
-        <div id="commentAuth" class="comment-auth">
-          <div id="signedOutCommentAuth">
-            <p>Use your email to join the discussion. Comments are tied to an account, but your email is never shown publicly.</p>
-            <form id="commentLoginForm"><input id="commentEmail" type="email" autocomplete="email" placeholder="you@example.com" required /><button type="submit">Email me a sign-in link</button></form>
-          </div>
-          <div id="signedInCommentAuth" class="hidden"><span id="commentSessionLabel"></span><button id="commentSignOut" type="button">Sign out</button></div>
-          <p id="commentAuthStatus" class="form-status" aria-live="polite"></p>
-        </div>
-
-        <form id="commentForm" class="comment-form hidden">
-          <label>Display name<input id="commentDisplayName" type="text" minlength="2" maxlength="60" required placeholder="How readers will see you" /></label>
-          <label>Your comment<textarea id="commentBody" rows="5" minlength="2" maxlength="3000" required></textarea></label>
-          <button type="submit">Submit for moderation</button>
-          <p id="commentStatus" class="form-status" aria-live="polite"></p>
-        </form>
-
-        <div id="commentList" class="comment-list"></div>
+      <header class="story-hero"><div class="story-kicker-row"><span id="storyCategory" class="story-kicker"></span><span id="storyScope" class="story-scope"></span></div><h1 id="storyHeadline"></h1><p id="storySummary" class="story-deck"></p><div id="storyMeta" class="story-meta-line"></div><div class="story-links"><a id="originalSource" class="primary-link" target="_blank" rel="noopener noreferrer">Read original reporting →</a><a href="#discussion">Join the discussion ↓</a></div></header>
+      <section id="correctionBox" class="correction-box hidden" aria-label="Correction"><strong id="correctionDate">Correction</strong><p id="correctionText"></p></section>
+      <section class="trust-grid"><div class="trust-card"><span>Published as</span><strong id="originLabel">Source brief</strong></div><div class="trust-card"><span>By</span><strong id="bylineLabel">Pasadena Current Desk</strong></div><div class="trust-card"><span>AI assistance</span><strong id="aiLabel">AI-assisted · human reviewed</strong></div><div class="trust-card"><span>Original source</span><strong id="publisherLabel">Source</strong></div></section>
+      <section id="framingSection" class="framing-detail hidden"><div class="detail-heading"><div><p class="detail-kicker">Perspective analysis</p><h2 id="framingLabel"></h2></div><span id="framingConfidence" class="confidence-pill"></span></div><p id="framingReason"></p><p class="method-note">This describes the framing of this specific article—not whether the claims are true and not a permanent rating of the publisher.</p></section>
+      <details class="explain-box" open><summary>Explain this story</summary><div class="explain-grid"><section><h3>30-second summary</h3><p id="explainSummary"></p></section><section><h3>Why it matters here</h3><p id="whyItMatters"></p></section><section><h3>Background</h3><p id="backgroundText"></p></section><section><h3>What to keep in mind</h3><p id="keepInMind"></p></section></div></details>
+      <details class="reporting-box"><summary>How we reported this</summary><p id="howReported"></p><ul id="sourceList"></ul></details>
+      <section id="timelineSection" class="timeline-section hidden"><div class="section-title"><p class="detail-kicker">Related coverage</p><h2>Story timeline</h2></div><div id="timelineList" class="timeline-list"></div></section>
+      <section class="error-report-section"><div><p class="detail-kicker">Accountability</p><h2>See something wrong?</h2><p>Tell us what needs checking. If we correct the story, the correction stays visible on this page.</p></div><form id="errorReportForm"><label>Email (optional)<input id="errorEmail" type="email" autocomplete="email" /></label><label>What should we review?<textarea id="errorMessage" rows="4" required minlength="10" maxlength="4000"></textarea></label><button type="submit">Report an error</button><p id="errorReportStatus" class="form-status" aria-live="polite"></p></form></section>
+      <section id="discussion" class="discussion-section"><div class="discussion-heading"><div><p class="detail-kicker">Community discussion</p><h2>Disagree without becoming enemies.</h2></div><a href="../community-rules/">Community rules →</a></div><p class="discussion-intro">Political and unpopular opinions are welcome. Threats, doxxing, slurs, targeted harassment and unsupported accusations about private people are not. New comments are screened before they appear publicly.</p>
+        <div id="commentAuth" class="comment-auth"><div id="signedOutCommentAuth"><p>Use your email to join the discussion. Comments are tied to an account, but your email is never shown publicly.</p><form id="commentLoginForm"><input id="commentEmail" type="email" autocomplete="email" placeholder="you@example.com" required /><button type="submit">Email me a sign-in link</button></form></div><div id="signedInCommentAuth" class="hidden"><span id="commentSessionLabel"></span><button id="commentSignOut" type="button">Sign out</button></div><p id="commentAuthStatus" class="form-status" aria-live="polite"></p></div>
+        <form id="commentForm" class="comment-form hidden"><label>Display name<input id="commentDisplayName" type="text" minlength="2" maxlength="60" required placeholder="How readers will see you" /></label><label>Your comment<textarea id="commentBody" rows="5" minlength="2" maxlength="3000" required></textarea></label><button type="submit">Submit for moderation</button><p id="commentStatus" class="form-status" aria-live="polite"></p></form><div id="commentList" class="comment-list"></div>
       </section>
     </article>
   </main>
-
   <footer class="brief-footer"><div class="brief-wrap"><a href="../">← Back to The Pasadena Current</a><span>Human-reviewed local information for Pasadena, Maryland.</span></div></footer>
   <script type="module" src="./story.js"></script>
+  <script type="module" src="./comment-reports.js"></script>
 </body>
 </html>
