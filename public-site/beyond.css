@@ -1,0 +1,32 @@
+.beyond-section { margin: 64px 0 58px; }
+.beyond-heading { align-items: flex-start; }
+.framing-explainer { max-width: 520px; margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.5; text-align: right; }
+.desk-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.news-desk { min-width: 0; padding: 20px; border: 1px solid var(--line); background: rgba(248,245,236,.66); box-shadow: 0 8px 18px rgba(29,43,50,.035); }
+.desk-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--navy); }
+.desk-heading .section-label { margin: 0; }
+.desk-heading h3 { margin: 0; font: 700 1.75rem/1 Georgia, serif; }
+.desk-story-list { display: grid; gap: 0; }
+.desk-story { padding: 18px 0; border-bottom: 1px solid var(--line); }
+.desk-story:last-child { border-bottom: 0; padding-bottom: 2px; }
+.desk-story-topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.desk-source { color: var(--muted); font-size: .68rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+.framing-badge { flex-shrink: 0; border: 1px solid var(--line); border-radius: 999px; padding: 4px 7px; font-size: .62rem; line-height: 1; font-weight: 900; letter-spacing: .025em; white-space: nowrap; background: var(--paper); }
+.framing-left { color: #405f8a; border-color: rgba(64,95,138,.45); }
+.framing-right { color: #9a4d31; border-color: rgba(154,77,49,.45); }
+.framing-center { color: var(--bay); border-color: rgba(46,105,115,.45); }
+.framing-mixed, .framing-unclear { color: #6f6350; border-color: rgba(111,99,80,.4); }
+.framing-not_political { color: var(--muted); }
+.desk-story h4 { margin: 12px 0 8px; font: 700 1.27rem/1.22 Georgia, serif; }
+.desk-summary { margin: 0; color: #43575e; font-size: .9rem; line-height: 1.55; }
+.desk-meta { margin: 12px 0 0; color: var(--muted); font-size: .72rem; }
+.desk-story .utility-link { margin-top: 10px; font-size: .74rem; }
+@media (max-width: 860px) {
+  .desk-columns { grid-template-columns: 1fr; }
+  .framing-explainer { max-width: none; text-align: left; }
+}
+@media (max-width: 580px) {
+  .news-desk { padding: 16px; }
+  .desk-story-topline { flex-direction: column; }
+  .framing-badge { white-space: normal; }
+}
