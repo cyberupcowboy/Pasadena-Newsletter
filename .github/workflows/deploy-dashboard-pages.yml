@@ -38,6 +38,8 @@ jobs:
           node --check public-site/submit/app.js
           node --check dashboard/app.js
           node --check dashboard/community.js
+          node --check dashboard/community-approval-ux.js
+          node --check dashboard/community-workflow.js
 
       - name: Build Pages artifact
         run: |
