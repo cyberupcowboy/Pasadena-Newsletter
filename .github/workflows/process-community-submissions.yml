@@ -3,7 +3,7 @@ name: Process Community Submissions
 on:
   workflow_dispatch:
   schedule:
-    - cron: '7,27,47 * * * *'
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: read
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   copy-desk:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -28,7 +28,7 @@ jobs:
       - name: Validate community processor
         run: node --check scripts/process-community-submissions.mjs
 
-      - name: Prepare community submissions for editor review
+      - name: Rewrite, fact-check, and risk-review community submissions
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
