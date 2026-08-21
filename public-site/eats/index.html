@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="The Pasadena Current Local Eats guide — hot restaurants, neighborhood favorites and places worth trying around Pasadena, Maryland." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Local Eats — The Pasadena Current</title>
+  <link rel="stylesheet" href="../section-page.css" />
+  <link rel="stylesheet" href="./eats.css" />
+</head>
+<body>
+  <header class="page-header">
+    <div class="page-wrap page-header-inner">
+      <a class="page-brand" href="../">The Pasadena Current</a>
+      <nav><a href="../">Home</a><a href="../events/">Events</a><a href="../directory/">Directory</a><a href="../submit/?type=business">Nominate a place</a></nav>
+    </div>
+  </header>
+
+  <main class="page-wrap">
+    <section class="page-hero eats-hero">
+      <p class="eyebrow">Local Eats · Pasadena, Maryland</p>
+      <h1>Where Pasadena is eating now.</h1>
+      <p>Restaurant openings, places with real neighborhood buzz, and the spots locals keep going back to. Editorial picks are independent of sponsorships.</p>
+      <div class="hero-actions">
+        <a class="action-button" href="#hot">See what’s hot</a>
+        <a class="action-button secondary" href="#favorites">Local favorites</a>
+        <a class="action-button secondary" href="../submit/?type=business">Nominate a restaurant</a>
+      </div>
+    </section>
+
+    <section class="eats-method">
+      <strong>How the Current picks Local Eats</strong>
+      <p><b>Hot right now</b> looks for current buzz, new energy, seasonal pull and places drawing unusual local attention. <b>Local favorites</b> recognizes durable neighborhood loyalty. These are editorial labels—not star ratings, paid placement or claims that one restaurant is objectively “best.” Sponsored businesses remain clearly labeled in the directory and do not receive an Eats label because they paid.</p>
+    </section>
+
+    <section class="page-toolbar" aria-label="Restaurant filters">
+      <input id="eatsSearch" type="search" placeholder="Search restaurant, cuisine, dish…" aria-label="Search Local Eats" />
+      <select id="cuisineFilter" aria-label="Filter by cuisine"><option value="all">All cuisines</option></select>
+    </section>
+
+    <section id="eatsState" class="page-state">Checking the local table…</section>
+
+    <section id="hot" class="section-block hidden">
+      <div class="section-heading">
+        <div><p class="eyebrow">Making waves</p><h2>Hot right now</h2></div>
+        <p>Fresh buzz, seasonal pull and places worth knowing now.</p>
+      </div>
+      <div id="hotGrid" class="eats-grid"></div>
+    </section>
+
+    <section id="favorites" class="section-block hidden">
+      <div class="section-heading">
+        <div><p class="eyebrow">Pasadena staples</p><h2>Local favorites</h2></div>
+        <p>The dependable spots that feel like part of the neighborhood.</p>
+      </div>
+      <div id="favoriteGrid" class="eats-grid"></div>
+    </section>
+
+    <section class="nominate-box">
+      <div><p class="eyebrow">Your turn</p><h2>What are we missing?</h2><p>Tell the Current about the little carryout, food truck, waterfront table or old-school favorite Pasadena should know about. Community nominations go through the same human moderation workflow as other submissions.</p></div>
+      <a class="action-button" href="../submit/?type=business">Nominate a local favorite →</a>
+    </section>
+  </main>
+
+  <footer class="page-footer"><div class="page-wrap"><span>The Pasadena Current · Local Eats</span><a href="../directory/">Browse the full business directory →</a></div></footer>
+  <script type="module" src="./eats.js"></script>
+</body>
+</html>
