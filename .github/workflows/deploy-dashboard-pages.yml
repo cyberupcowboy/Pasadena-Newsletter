@@ -47,6 +47,7 @@ jobs:
           node --check public-site/search/search.js
           node --check public-site/alerts/alerts.js
           node --check public-site/submit/app.js
+          node --check public-site/submit/preselect.js
           node --check dashboard/app.js
           node --check dashboard/community.js
           node --check dashboard/community-approval-ux.js
