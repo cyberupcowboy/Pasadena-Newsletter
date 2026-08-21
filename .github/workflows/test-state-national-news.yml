@@ -1,0 +1,41 @@
+name: Test State and National News
+
+on:
+  push:
+    branches:
+      - feature/state-national-news
+    paths:
+      - 'scripts/ingest-state-national-news.mjs'
+      - 'prompts/state-national-news.md'
+      - 'public-site/**'
+      - 'dashboard/app.js'
+      - 'dashboard/index.html'
+      - '.github/workflows/test-state-national-news.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate JavaScript
+        run: |
+          node --check scripts/ingest-state-national-news.mjs
+          node --check public-site/app.js
+          node --check dashboard/app.js
+      - name: Run state and national news smoke test
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OPENAI_MODEL: gpt-5.6-luna
+          STATE_ITEMS: '4'
+          NATIONAL_ITEMS: '4'
+        run: node scripts/ingest-state-national-news.mjs
