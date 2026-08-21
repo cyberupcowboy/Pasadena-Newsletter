@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Choose Pasadena Current alert and newsletter preferences." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Alerts & Newsletters — The Pasadena Current</title>
+  <link rel="stylesheet" href="../section-page.css" />
+</head>
+<body>
+  <header class="page-header"><div class="page-wrap page-header-inner"><a class="page-brand" href="../">The Pasadena Current</a><nav><a href="../">Home</a><a href="../events/">Events</a><a href="../neighborhoods/">Neighborhoods</a><a href="../search/">Search</a></nav></div></header>
+  <main class="page-wrap">
+    <section class="page-hero"><p class="eyebrow">Stay informed without inbox overload</p><h1>Alerts & newsletters</h1><p>Choose the topics and neighborhoods you care about. The Current stores your preferences separately from editorial content, and sponsorship does not affect what stories are selected.</p></section>
+
+    <form id="alertPreferencesForm" class="form-panel">
+      <label>Email<input id="alertsEmail" type="email" autocomplete="email" required /></label>
+      <label>How often?
+        <select id="alertsCadence"><option value="daily">Pasadena Morning Brief</option><option value="weekly">Sunday Week Ahead</option><option value="breaking">Breaking / urgent alerts</option></select>
+      </label>
+      <div><p class="eyebrow">Topics</p><div id="topicOptions" class="checkbox-grid"></div></div>
+      <div><p class="eyebrow">Neighborhoods</p><div id="neighborhoodOptions" class="checkbox-grid"></div></div>
+      <label style="display:flex;grid-template-columns:auto 1fr;align-items:start;gap:8px"><input id="alertsConsent" type="checkbox" required style="width:auto;margin-top:3px" /><span>I want The Pasadena Current to save these subscription preferences and contact me for the selected brief/alerts.</span></label>
+      <button type="submit" class="action-button">Save preferences</button>
+      <p id="alertsMessage" class="form-message" aria-live="polite"></p>
+    </form>
+
+    <section class="notice-box"><strong>Delivery status:</strong> preference collection is active. Morning Brief / Week Ahead draft generation is being wired into the newsroom workflow; outbound email delivery requires the publication’s mail provider to be connected before these requests are activated.</section>
+  </main>
+  <footer class="page-footer"><div class="page-wrap"><a href="../">← Back to The Pasadena Current</a><span>You choose the cadence, topics and neighborhoods.</span></div></footer>
+  <script type="module" src="./alerts.js"></script>
+</body>
+</html>
