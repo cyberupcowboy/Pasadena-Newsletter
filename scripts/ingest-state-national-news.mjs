@@ -7,6 +7,7 @@ const SUPABASE_SECRET_KEY = requiredEnv('SUPABASE_SECRET_KEY');
 const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.6-luna';
 const STATE_ITEMS = Number(process.env.STATE_ITEMS ?? '5');
 const NATIONAL_ITEMS = Number(process.env.NATIONAL_ITEMS ?? '6');
+const DESK_SCOPE = String(process.env.DESK_SCOPE ?? 'both').toLowerCase();
 const prompt = await readFile(new URL('../prompts/state-national-news.md', import.meta.url), 'utf8');
 
 const SOURCE_CONFIGS = [
@@ -222,7 +223,9 @@ async function ingestDesk(scope, maxItems) {
         continue;
       }
 
-      const existing = await supabaseGet('stories', { source_url: `eq.${item.source_url}`, select: 'id', limit: '1' });
+      const sourceUrl = normalizeUrl(item.source_url);
+      if (!sourceUrl) { rejected += 1; continue; }
+      const existing = await supabaseGet('stories', { source_url: `eq.${sourceUrl}`, select: 'id', limit: '1' });
       if (existing.length) { skipped += 1; continue; }
 
       const source = await sourceRecord(config.name);
@@ -231,8 +234,6 @@ async function ingestDesk(scope, maxItems) {
       const politicalContent = Boolean(item.political_content);
       const slant = politicalContent ? item.political_slant : 'not_political';
       const publishedAt = isoOrNull(item.published_at);
-      const sourceUrl = normalizeUrl(item.source_url);
-      if (!sourceUrl) { rejected += 1; continue; }
 
       await insertStory({
         source_id: source.id,
@@ -266,14 +267,18 @@ async function ingestDesk(scope, maxItems) {
     }
   }
 
-  return { scope, candidates: items.length, inserted, skipped, rejected };
+  const result = { scope, candidates: items.length, inserted, skipped, rejected };
+  console.log(JSON.stringify(result));
+  if (inserted + skipped === 0) process.exitCode = 1;
+  return result;
 }
 
 async function main() {
-  const state = await ingestDesk('state', STATE_ITEMS);
-  const national = await ingestDesk('national', NATIONAL_ITEMS);
-  console.log(JSON.stringify({ state, national }));
-  if (state.inserted + state.skipped === 0 && national.inserted + national.skipped === 0) process.exitCode = 1;
+  if (!['state', 'national', 'both'].includes(DESK_SCOPE)) throw new Error(`Invalid DESK_SCOPE: ${DESK_SCOPE}`);
+  const results = [];
+  if (DESK_SCOPE === 'state' || DESK_SCOPE === 'both') results.push(await ingestDesk('state', STATE_ITEMS));
+  if (DESK_SCOPE === 'national' || DESK_SCOPE === 'both') results.push(await ingestDesk('national', NATIONAL_ITEMS));
+  console.log(JSON.stringify({ desks: results }));
 }
 
 await main();
