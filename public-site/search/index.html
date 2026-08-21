@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Search The Pasadena Current archive across local news, Community Voices, events and businesses." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Search / Ask Pasadena — The Pasadena Current</title>
+  <link rel="stylesheet" href="../section-page.css" />
+</head>
+<body>
+  <header class="page-header"><div class="page-wrap page-header-inner"><a class="page-brand" href="../">The Pasadena Current</a><nav><a href="../">Home</a><a href="../events/">Events</a><a href="../civic/">Civic Watch</a><a href="../neighborhoods/">Neighborhoods</a></nav></div></header>
+  <main class="page-wrap">
+    <section class="page-hero"><p class="eyebrow">Archive + local knowledge</p><h1>Search / Ask Pasadena</h1><p>Ask in plain English—“Mountain Road development,” “school bus changes,” or “weekend crabbing.” This beta searches the public Current archive, Community Voices, events and business listings and gives you source-linked matches. It does not invent an answer when the archive does not contain one.</p></section>
+    <form id="searchForm" class="page-toolbar"><input id="searchQuery" type="search" placeholder="What do you want to know about Pasadena?" aria-label="Search query" required minlength="2" /><button type="submit">Search</button></form>
+    <div id="searchSummary" class="notice-box hidden"></div>
+    <section id="searchState" class="page-state">Try a local question or search term.</section>
+    <section id="searchResults" class="list-stack hidden"></section>
+  </main>
+  <footer class="page-footer"><div class="page-wrap"><a href="../">← Back to The Pasadena Current</a><span>Search results are drawn only from public Current data.</span></div></footer>
+  <script type="module" src="./search.js"></script>
+</body>
+</html>
