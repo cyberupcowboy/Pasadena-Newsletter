@@ -1,0 +1,16 @@
+.local-eats-admin { margin-top: 30px; }
+.local-eats-admin-head { display:flex; justify-content:space-between; gap:18px; align-items:end; margin-bottom:14px; }
+.local-eats-admin-head h2 { margin:0; }
+.local-eats-admin-head p { margin:5px 0 0; color:var(--muted); }
+.local-eats-admin-list { display:grid; gap:10px; }
+.local-eats-admin-card { display:grid; grid-template-columns:minmax(170px,1.2fr) minmax(130px,.8fr) 90px 90px 1.8fr 1.1fr auto; gap:9px; align-items:end; padding:14px; border:1px solid var(--line); background:var(--paper); }
+.local-eats-admin-card label { display:grid; gap:5px; color:var(--muted); font-size:.68rem; font-weight:900; }
+.local-eats-admin-card input,.local-eats-admin-card select,.local-eats-admin-card textarea { width:100%; padding:8px; border:1px solid var(--line); background:#fffdf7; font:inherit; }
+.local-eats-admin-card textarea { min-height:76px; resize:vertical; }
+.local-eats-admin-name { align-self:start; }
+.local-eats-admin-name strong { display:block; font:700 1.08rem Georgia,serif; }
+.local-eats-admin-name span { display:block; margin-top:5px; color:var(--muted); font-size:.72rem; line-height:1.35; }
+.local-eats-admin-save { white-space:nowrap; }
+.local-eats-admin-state { margin-top:8px; color:var(--muted); font-size:.72rem; }
+@media(max-width:1100px){.local-eats-admin-card{grid-template-columns:repeat(2,minmax(0,1fr));}.local-eats-admin-name{grid-column:1/-1}.local-eats-admin-save{justify-self:start}}
+@media(max-width:650px){.local-eats-admin-card{grid-template-columns:1fr}}
