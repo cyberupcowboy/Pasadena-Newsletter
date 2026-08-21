@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Pasadena, Maryland local events calendar from The Pasadena Current." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://eedpedkvymohcubdaoey.supabase.co wss://eedpedkvymohcubdaoey.supabase.co; style-src 'self'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'none'" />
+  <title>Pasadena Events — The Pasadena Current</title>
+  <link rel="stylesheet" href="../section-page.css" />
+</head>
+<body>
+  <header class="page-header"><div class="page-wrap page-header-inner"><a class="page-brand" href="../">The Pasadena Current</a><nav><a href="../">Home</a><a href="../civic/">Civic Watch</a><a href="../directory/">Directory</a><a href="../submit/">Submit</a></nav></div></header>
+  <main class="page-wrap">
+    <section class="page-hero"><p class="eyebrow">Around town</p><h1>Pasadena events</h1><p>One calendar for community events, libraries, schools, meetings, fundraisers, yard sales and resident-submitted happenings. Community events only appear after moderation.</p></section>
+    <div class="page-toolbar">
+      <input id="eventSearch" type="search" placeholder="Search events, venues or neighborhoods" aria-label="Search events" />
+      <select id="eventWindow"><option value="30">Next 30 days</option><option value="7">Next 7 days</option><option value="today">Today</option><option value="weekend">This weekend</option><option value="90">Next 90 days</option></select>
+      <select id="eventCategory"><option value="all">All categories</option></select>
+      <a class="action-button" href="../submit/?type=event">Submit an event</a>
+    </div>
+    <section id="eventState" class="page-state">Loading the local calendar…</section>
+    <section id="eventResults" class="list-stack hidden"></section>
+    <section class="notice-box"><strong>Want something listed?</strong> Submit an event through Community Voices. The AI copy desk cleans up the listing, a human editor reviews it, and approved events flow into this calendar automatically.</section>
+  </main>
+  <footer class="page-footer"><div class="page-wrap"><a href="../">← Back to The Pasadena Current</a><span>Events may change; follow the source link before heading out.</span></div></footer>
+  <script type="module" src="./events.js"></script>
+</body>
+</html>
