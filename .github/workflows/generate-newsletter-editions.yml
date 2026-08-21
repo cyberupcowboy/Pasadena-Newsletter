@@ -1,0 +1,32 @@
+name: Generate Pasadena Current Editions
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 11 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: generate-pasadena-editions
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate newsletter generator
+        run: node --check scripts/generate-newsletter-editions.mjs
+      - name: Generate Morning Brief and Sunday Week Ahead
+        env:
+          SUPABASE_URL: https://eedpedkvymohcubdaoey.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/generate-newsletter-editions.mjs
